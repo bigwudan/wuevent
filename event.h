@@ -47,7 +47,7 @@ struct event;
 TAILQ_HEAD (event_list, event);
 TAILQ_HEAD (evkeyvalq, evkeyval);
 
-
+struct event_base *event_base_new(void);
 
 
 
