@@ -47,10 +47,12 @@ struct event;
 TAILQ_HEAD (event_list, event);
 TAILQ_HEAD (evkeyvalq, evkeyval);
 
-struct event_base *event_base_new(void);
+extern struct event_base *event_base_new(void);
+
+extern int  event_base_priority_init(struct event_base *, int);
 
 
-
+extern struct event_base *event_init(void);
 
 
 
