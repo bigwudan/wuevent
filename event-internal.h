@@ -1,3 +1,8 @@
+#ifndef _EVENT_INTERNAL_H_
+#define _EVENT_INTERNAL_H_
+
+#include "min_heap.h"
+
 
 struct eventop {
     const char *name;
@@ -26,7 +31,7 @@ struct event_base {
     int nactivequeues;
 
     /* signal handling info */
-    struct evsignal_info sig;
+    //struct evsignal_info sig;
 
     struct event_list eventqueue;
     struct timeval event_tv;
@@ -35,3 +40,7 @@ struct event_base {
 
     struct timeval tv_cache;
 };
+
+
+#endif /* _EVENT_INTERNAL_H_ */
+

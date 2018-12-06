@@ -1,0 +1,28 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct event{
+    int num;
+};
+
+
+//struct event_base
+//{
+//    int num;
+//    struct event ev_num;
+//};
+
+struct event_base
+{
+    struct {int num} m_num;
+};
+
+
+
+
+int main(int argv ,char* agrs[])
+{
+    struct event_base m_base;
+    m_base.m_num.num = 1;
+
+}

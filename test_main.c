@@ -1,11 +1,14 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+//#include <stdio.h>
+//#include <stdlib.h>
 
-int main(int argc, char* argv[])
+#include "event.h"
+#include "event-internal.h"
+
+
+
+int main(int argv ,char* agrs[])
 {
 
-    printf("test\n");
-
+    struct event m_evnet;
 
 }
