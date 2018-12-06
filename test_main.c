@@ -6,6 +6,6 @@
 
 int main(int argv ,char* agrs[])
 {
-//   event_init();
-
+   event_init();
+    printf("test\n");
 }
