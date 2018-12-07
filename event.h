@@ -14,7 +14,19 @@
     }
 #endif /* !TAILQ_ENTRY */
 
+
+#define EV_TIMEOUT  0x01
+#define EV_READ     0x02
+#define EV_WRITE    0x04
+#define EV_SIGNAL   0x08
+#define EV_PERSIST  0x10    /* Persistant event */
+
+
+
 struct event_base;
+
+
+
 
 #ifndef EVENT_NO_STRUCT
 struct event {
