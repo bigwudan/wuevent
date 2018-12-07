@@ -12,6 +12,7 @@
 #include "event-internal.h"
 #include "evutil.h"
 #include "log.h"
+#include "evsignal.h"
 
 /* due to limitations in the epoll interface, we need to keep track of
  *  * all file descriptors outself.
@@ -102,19 +103,8 @@ void *epoll_init (struct event_base *base)
         return (NULL);
     }
     epollop->nfds = INITIAL_NFILES;
-
-    //evsignal_init(base);
-
+    evsignal_init(base);
     return (epollop);
-
-
-
-
-
-
-
-
-
 }
 
 static int 

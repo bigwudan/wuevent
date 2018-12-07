@@ -15,4 +15,8 @@ struct evsignal_info {
     int sh_old_max;
 };
 
+
+extern int evsignal_init(struct event_base *);
+
+
 #endif
