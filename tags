@@ -1,0 +1,241 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+CIRCLEQ_EMPTY	sys/queue.h	401;"	d
+CIRCLEQ_END	sys/queue.h	398;"	d
+CIRCLEQ_ENTRY	sys/queue.h	387;"	d
+CIRCLEQ_FIRST	sys/queue.h	396;"	d
+CIRCLEQ_FOREACH	sys/queue.h	404;"	d
+CIRCLEQ_FOREACH_REVERSE	sys/queue.h	409;"	d
+CIRCLEQ_HEAD	sys/queue.h	378;"	d
+CIRCLEQ_HEAD_INITIALIZER	sys/queue.h	384;"	d
+CIRCLEQ_INIT	sys/queue.h	417;"	d
+CIRCLEQ_INSERT_AFTER	sys/queue.h	422;"	d
+CIRCLEQ_INSERT_BEFORE	sys/queue.h	432;"	d
+CIRCLEQ_INSERT_HEAD	sys/queue.h	442;"	d
+CIRCLEQ_INSERT_TAIL	sys/queue.h	452;"	d
+CIRCLEQ_LAST	sys/queue.h	397;"	d
+CIRCLEQ_NEXT	sys/queue.h	399;"	d
+CIRCLEQ_PREV	sys/queue.h	400;"	d
+CIRCLEQ_REMOVE	sys/queue.h	462;"	d
+CIRCLEQ_REPLACE	sys/queue.h	475;"	d
+CLOCK_PROF	sys/_libevent_time.h	156;"	d
+CLOCK_REALTIME	sys/_libevent_time.h	154;"	d
+CLOCK_VIRTUAL	sys/_libevent_time.h	155;"	d
+DST_AUST	sys/_libevent_time.h	72;"	d
+DST_CAN	sys/_libevent_time.h	76;"	d
+DST_EET	sys/_libevent_time.h	75;"	d
+DST_MET	sys/_libevent_time.h	74;"	d
+DST_NONE	sys/_libevent_time.h	70;"	d
+DST_USA	sys/_libevent_time.h	71;"	d
+DST_WET	sys/_libevent_time.h	73;"	d
+EVLIST_ACTIVE	event.h	20;"	d
+EVLIST_ALL	event.h	25;"	d
+EVLIST_INIT	event.h	22;"	d
+EVLIST_INSERTED	event.h	18;"	d
+EVLIST_INTERNAL	event.h	21;"	d
+EVLIST_SIGNAL	event.h	19;"	d
+EVLIST_TIMEOUT	event.h	17;"	d
+EV_PERSIST	event.h	33;"	d
+EV_READ	event.h	30;"	d
+EV_SIGNAL	event.h	32;"	d
+EV_TIMEOUT	event.h	29;"	d
+EV_WRITE	event.h	31;"	d
+FD_CLOSEONEXEC	epoll.c	54;"	d	file:
+FD_CLOSEONEXEC	epoll.c	59;"	d	file:
+FD_CLOSEONEXEC	signal.c	17;"	d	file:
+INITIAL_NEVENTS	epoll.c	63;"	d	file:
+INITIAL_NFILES	epoll.c	62;"	d	file:
+ITIMER_PROF	sys/_libevent_time.h	136;"	d
+ITIMER_REAL	sys/_libevent_time.h	134;"	d
+ITIMER_VIRTUAL	sys/_libevent_time.h	135;"	d
+LIST_EMPTY	sys/queue.h	159;"	d
+LIST_END	sys/queue.h	158;"	d
+LIST_ENTRY	sys/queue.h	148;"	d
+LIST_FIRST	sys/queue.h	157;"	d
+LIST_FOREACH	sys/queue.h	162;"	d
+LIST_HEAD	sys/queue.h	140;"	d
+LIST_HEAD_INITIALIZER	sys/queue.h	145;"	d
+LIST_INIT	sys/queue.h	170;"	d
+LIST_INSERT_AFTER	sys/queue.h	174;"	d
+LIST_INSERT_BEFORE	sys/queue.h	182;"	d
+LIST_INSERT_HEAD	sys/queue.h	189;"	d
+LIST_NEXT	sys/queue.h	160;"	d
+LIST_REMOVE	sys/queue.h	196;"	d
+LIST_REPLACE	sys/queue.h	203;"	d
+MAX_NEVENTS	epoll.c	64;"	d	file:
+SIMPLEQ_EMPTY	sys/queue.h	233;"	d
+SIMPLEQ_END	sys/queue.h	232;"	d
+SIMPLEQ_ENTRY	sys/queue.h	223;"	d
+SIMPLEQ_FIRST	sys/queue.h	231;"	d
+SIMPLEQ_FOREACH	sys/queue.h	236;"	d
+SIMPLEQ_HEAD	sys/queue.h	214;"	d
+SIMPLEQ_HEAD_INITIALIZER	sys/queue.h	220;"	d
+SIMPLEQ_INIT	sys/queue.h	244;"	d
+SIMPLEQ_INSERT_AFTER	sys/queue.h	261;"	d
+SIMPLEQ_INSERT_HEAD	sys/queue.h	249;"	d
+SIMPLEQ_INSERT_TAIL	sys/queue.h	255;"	d
+SIMPLEQ_NEXT	sys/queue.h	234;"	d
+SIMPLEQ_REMOVE_HEAD	sys/queue.h	267;"	d
+SLIST_EMPTY	sys/queue.h	108;"	d
+SLIST_END	sys/queue.h	107;"	d
+SLIST_ENTRY	sys/queue.h	97;"	d
+SLIST_FIRST	sys/queue.h	106;"	d
+SLIST_FOREACH	sys/queue.h	111;"	d
+SLIST_HEAD	sys/queue.h	88;"	d
+SLIST_HEAD_INITIALIZER	sys/queue.h	93;"	d
+SLIST_INIT	sys/queue.h	119;"	d
+SLIST_INSERT_AFTER	sys/queue.h	123;"	d
+SLIST_INSERT_HEAD	sys/queue.h	128;"	d
+SLIST_NEXT	sys/queue.h	109;"	d
+SLIST_REMOVE_HEAD	sys/queue.h	133;"	d
+TAILQ_EMPTY	sys/queue.h	301;"	d
+TAILQ_END	sys/queue.h	294;"	d
+TAILQ_ENTRY	event.h	10;"	d
+TAILQ_ENTRY	sys/queue.h	284;"	d
+TAILQ_FIRST	sys/queue.h	293;"	d
+TAILQ_FOREACH	sys/queue.h	304;"	d
+TAILQ_FOREACH_REVERSE	sys/queue.h	309;"	d
+TAILQ_HEAD	sys/queue.h	275;"	d
+TAILQ_HEAD_INITIALIZER	sys/queue.h	281;"	d
+TAILQ_INIT	sys/queue.h	317;"	d
+TAILQ_INSERT_AFTER	sys/queue.h	339;"	d
+TAILQ_INSERT_BEFORE	sys/queue.h	349;"	d
+TAILQ_INSERT_HEAD	sys/queue.h	322;"	d
+TAILQ_INSERT_TAIL	sys/queue.h	332;"	d
+TAILQ_LAST	sys/queue.h	296;"	d
+TAILQ_NEXT	sys/queue.h	295;"	d
+TAILQ_PREV	sys/queue.h	299;"	d
+TAILQ_REMOVE	sys/queue.h	356;"	d
+TAILQ_REPLACE	sys/queue.h	365;"	d
+TIMER_ABSTIME	sys/_libevent_time.h	159;"	d
+TIMER_RELTIME	sys/_libevent_time.h	158;"	d
+TIMESPEC_TO_TIMEVAL	sys/_libevent_time.h	61;"	d
+TIMEVAL_TO_TIMESPEC	sys/_libevent_time.h	57;"	d
+_EVENT_DEFINED_TQENTRY	event.h	9;"	d
+_EVENT_H_	event.h	2;"	d
+_EVENT_INTERNAL_H_	event-internal.h	2;"	d
+_EVSIGNAL_H_	evsignal.h	2;"	d
+_EVUTIL_H_	evutil.h	2;"	d
+_LOG_H_	log.h	2;"	d
+_MIN_HEAP_H_	min_heap.h	2;"	d
+_SYS_QUEUE_H_	sys/queue.h	36;"	d
+_SYS_TIME_H_	sys/_libevent_time.h	36;"	d
+a	min_heap.h	/^            unsigned n, a;$/;"	m	struct:min_heap
+activequeues	event-internal.h	/^    struct event_list **activequeues;$/;"	m	struct:event_base	typeref:struct:event_base::event_list
+add	event-internal.h	/^    int (*add)(void *, struct event *);$/;"	m	struct:eventop
+clockinfo	sys/_libevent_time.h	/^struct clockinfo {$/;"	s
+current_base	event.c	/^struct event_base *current_base = NULL;$/;"	v	typeref:struct:event_base
+dealloc	event-internal.h	/^    void (*dealloc)(struct event_base *, void *);$/;"	m	struct:eventop
+del	event-internal.h	/^    int (*del)(void *, struct event *);$/;"	m	struct:eventop
+detect_monotonic	event.c	/^detect_monotonic(void)$/;"	f	file:
+dispatch	event-internal.h	/^    int (*dispatch)(struct event_base *, void *, struct timeval *);$/;"	m	struct:eventop
+epfd	epoll.c	/^    int epfd;$/;"	m	struct:epollop	file:
+epoll_add	epoll.c	/^epoll_add    (void *a, struct event *p)$/;"	f	file:
+epoll_dealloc	epoll.c	/^epoll_dealloc   (struct event_base *p, void *a)$/;"	f	file:
+epoll_del	epoll.c	/^epoll_del    (void *a, struct event *p)$/;"	f	file:
+epoll_dispatch	epoll.c	/^epoll_dispatch   (struct event_base *p, void *a, struct timeval *b)$/;"	f	file:
+epoll_init	epoll.c	/^void *epoll_init (struct event_base *base)$/;"	f	file:
+epollop	epoll.c	/^struct epollop {$/;"	s	file:
+epollops	epoll.c	/^const struct eventop epollops = {$/;"	v	typeref:struct:eventop
+ev_active_next	event.h	/^    TAILQ_ENTRY (event) ev_active_next;$/;"	m	struct:event
+ev_arg	event.h	/^    void *ev_arg;$/;"	m	struct:event
+ev_base	event.h	/^    struct event_base *ev_base;$/;"	m	struct:event	typeref:struct:event::event_base
+ev_callback	event.h	/^    void (*ev_callback)(int, short, void *arg);$/;"	m	struct:event
+ev_events	event.h	/^    short ev_events;$/;"	m	struct:event
+ev_fd	event.h	/^    int ev_fd;$/;"	m	struct:event
+ev_flags	event.h	/^    int ev_flags;$/;"	m	struct:event
+ev_ncalls	event.h	/^    short ev_ncalls;$/;"	m	struct:event
+ev_next	event.h	/^    TAILQ_ENTRY (event) ev_next;$/;"	m	struct:event
+ev_pncalls	event.h	/^    short *ev_pncalls;  \/* Allows deletes in callback *\/$/;"	m	struct:event
+ev_pri	event.h	/^    int ev_pri;     \/* smaller numbers are higher priority *\/$/;"	m	struct:event
+ev_res	event.h	/^    int ev_res;     \/* result passed to event callback *\/$/;"	m	struct:event
+ev_signal	evsignal.h	/^    struct event ev_signal;$/;"	m	struct:evsignal_info	typeref:struct:evsignal_info::event
+ev_signal_added	evsignal.h	/^    int ev_signal_added;$/;"	m	struct:evsignal_info
+ev_signal_next	event.h	/^    TAILQ_ENTRY (event) ev_signal_next;$/;"	m	struct:event
+ev_signal_pair	evsignal.h	/^    int ev_signal_pair[2];$/;"	m	struct:evsignal_info
+ev_timeout	event.h	/^    struct timeval ev_timeout;$/;"	m	struct:event	typeref:struct:event::timeval
+evbase	event-internal.h	/^    void *evbase;$/;"	m	struct:event_base
+event	event.h	/^struct event {$/;"	s
+event_base	event-internal.h	/^struct event_base {$/;"	s
+event_base_new	event.c	/^event_base_new(void)$/;"	f
+event_base_priority_init	event.c	/^event_base_priority_init(struct event_base *base, int npriorities)$/;"	f
+event_break	event-internal.h	/^    int event_break;        \/* Set to terminate loop immediately *\/$/;"	m	struct:event_base
+event_count	event-internal.h	/^    int event_count;        \/* counts number of total events *\/$/;"	m	struct:event_base
+event_count_active	event-internal.h	/^    int event_count_active; \/* counts number of active events *\/$/;"	m	struct:event_base
+event_err	log.c	/^event_err(int eval, const char *fmt, ...)$/;"	f
+event_errx	log.c	/^event_errx(int eval, const char *fmt, ...)$/;"	f
+event_gotterm	event-internal.h	/^    int event_gotterm;      \/* Set to terminate loop *\/$/;"	m	struct:event_base
+event_init	event.c	/^event_init(void)$/;"	f
+event_msgx	log.c	/^event_msgx(const char *fmt, ...)$/;"	f
+event_set	event.c	/^event_set(struct event *ev, int fd, short events,$/;"	f
+event_tv	event-internal.h	/^    struct timeval event_tv;$/;"	m	struct:event_base	typeref:struct:event_base::timeval
+event_warn	log.c	/^event_warn(const char *fmt, ...)$/;"	f
+eventop	event-internal.h	/^struct eventop {$/;"	s
+eventops	event.c	/^static const struct eventop *eventops[] = {$/;"	v	typeref:struct:eventop	file:
+eventqueue	event-internal.h	/^    struct event_list eventqueue;$/;"	m	struct:event_base	typeref:struct:event_base::event_list
+events	epoll.c	/^    struct epoll_event *events;$/;"	m	struct:epollop	typeref:struct:epollop::epoll_event	file:
+evepoll	epoll.c	/^struct evepoll {$/;"	s	file:
+evread	epoll.c	/^    struct event *evread;$/;"	m	struct:evepoll	typeref:struct:evepoll::event	file:
+evsel	event-internal.h	/^    const struct eventop *evsel;$/;"	m	struct:event_base	typeref:struct:event_base::eventop
+evsigcaught	evsignal.h	/^    sig_atomic_t evsigcaught[NSIG];$/;"	m	struct:evsignal_info
+evsigevents	evsignal.h	/^    struct event_list evsigevents[NSIG];$/;"	m	struct:evsignal_info	typeref:struct:evsignal_info::event_list
+evsignal_caught	evsignal.h	/^    volatile sig_atomic_t evsignal_caught;$/;"	m	struct:evsignal_info
+evsignal_cb	signal.c	/^evsignal_cb(int fd, short what, void *arg)$/;"	f	file:
+evsignal_info	evsignal.h	/^struct evsignal_info {$/;"	s
+evsignal_init	signal.c	/^evsignal_init(struct event_base *base)$/;"	f
+evutil_getenv	evutil.c	/^evutil_getenv(const char *varname)$/;"	f
+evutil_make_socket_nonblocking	evutil.c	/^evutil_make_socket_nonblocking(int fd)$/;"	f
+evutil_socketpair	evutil.c	/^evutil_socketpair(int family, int type, int protocol, int fd[2])$/;"	f
+evwrite	epoll.c	/^    struct event *evwrite;$/;"	m	struct:evepoll	typeref:struct:evepoll::event	file:
+fds	epoll.c	/^    struct evepoll *fds;$/;"	m	struct:epollop	typeref:struct:epollop::evepoll	file:
+gettime	event.c	/^gettime(struct event_base *base, struct timeval *tp)$/;"	f	file:
+hz	sys/_libevent_time.h	/^	int	hz;		\/* clock frequency *\/$/;"	m	struct:clockinfo
+init	event-internal.h	/^    void *(*init)(struct event_base *);$/;"	m	struct:eventop
+it_interval	sys/_libevent_time.h	/^	struct	timeval it_interval;	\/* timer interval *\/$/;"	m	struct:itimerval	typeref:struct:itimerval::timeval
+it_value	sys/_libevent_time.h	/^	struct	timeval it_value;	\/* current value *\/$/;"	m	struct:itimerval	typeref:struct:itimerval::timeval
+itimerval	sys/_libevent_time.h	/^struct	itimerval {$/;"	s
+main	test_main.c	/^int main(int argv ,char* agrs[])$/;"	f
+min_heap	min_heap.h	/^typedef struct min_heap$/;"	s
+min_heap_ctor	min_heap.h	/^void min_heap_ctor(min_heap_t* s) { s->p = 0; s->n = 0; s->a = 0; }$/;"	f
+min_heap_idx	event.h	/^    unsigned int min_heap_idx;  \/* for managing timeouts *\/$/;"	m	struct:event
+min_heap_t	min_heap.h	/^} min_heap_t;$/;"	t	typeref:struct:min_heap
+n	min_heap.h	/^            unsigned n, a;$/;"	m	struct:min_heap
+nactivequeues	event-internal.h	/^    int nactivequeues;$/;"	m	struct:event_base
+name	event-internal.h	/^    const char *name;$/;"	m	struct:eventop
+need_reinit	event-internal.h	/^    int need_reinit;$/;"	m	struct:eventop
+nevents	epoll.c	/^    int nevents;$/;"	m	struct:epollop	file:
+nfds	epoll.c	/^    int nfds;$/;"	m	struct:epollop	file:
+p	min_heap.h	/^        struct event** p;$/;"	m	struct:min_heap	typeref:struct:min_heap::event
+profhz	sys/_libevent_time.h	/^	int	profhz;		\/* profiling clock frequency *\/$/;"	m	struct:clockinfo
+sh_old	evsignal.h	/^    struct sigaction **sh_old;$/;"	m	struct:evsignal_info	typeref:struct:evsignal_info::sigaction
+sh_old_max	evsignal.h	/^    int sh_old_max;$/;"	m	struct:evsignal_info
+sig	event-internal.h	/^    struct evsignal_info sig;$/;"	m	struct:event_base	typeref:struct:event_base::evsignal_info
+stathz	sys/_libevent_time.h	/^	int	stathz;		\/* statistics clock frequency *\/$/;"	m	struct:clockinfo
+tick	sys/_libevent_time.h	/^	int	tick;		\/* micro-seconds per hz tick *\/$/;"	m	struct:clockinfo
+tickadj	sys/_libevent_time.h	/^	int	tickadj;	\/* clock skew rate for adjtime() *\/$/;"	m	struct:clockinfo
+timeheap	event-internal.h	/^    struct min_heap timeheap;$/;"	m	struct:event_base	typeref:struct:event_base::min_heap
+timeradd	sys/_libevent_time.h	85;"	d
+timerclear	sys/_libevent_time.h	79;"	d
+timercmp	sys/_libevent_time.h	81;"	d
+timerisset	sys/_libevent_time.h	80;"	d
+timersub	sys/_libevent_time.h	94;"	d
+timespec	sys/_libevent_time.h	/^struct timespec {$/;"	s
+timespecadd	sys/_libevent_time.h	111;"	d
+timespecclear	sys/_libevent_time.h	105;"	d
+timespeccmp	sys/_libevent_time.h	107;"	d
+timespecisset	sys/_libevent_time.h	106;"	d
+timespecsub	sys/_libevent_time.h	120;"	d
+timeval	sys/_libevent_time.h	/^struct timeval {$/;"	s
+timezone	sys/_libevent_time.h	/^struct timezone {$/;"	s
+tv_cache	event-internal.h	/^    struct timeval tv_cache;$/;"	m	struct:event_base	typeref:struct:event_base::timeval
+tv_nsec	sys/_libevent_time.h	/^	long	tv_nsec;	\/* and nanoseconds *\/$/;"	m	struct:timespec
+tv_sec	sys/_libevent_time.h	/^	long	tv_sec;		\/* seconds *\/$/;"	m	struct:timeval
+tv_sec	sys/_libevent_time.h	/^	time_t	tv_sec;		\/* seconds *\/$/;"	m	struct:timespec
+tv_usec	sys/_libevent_time.h	/^	long	tv_usec;	\/* and microseconds *\/$/;"	m	struct:timeval
+tz_dsttime	sys/_libevent_time.h	/^	int	tz_dsttime;	\/* type of dst correction *\/$/;"	m	struct:timezone
+tz_minuteswest	sys/_libevent_time.h	/^	int	tz_minuteswest;	\/* minutes west of Greenwich *\/$/;"	m	struct:timezone
+use_monotonic	event.c	/^static int use_monotonic;$/;"	v	file:

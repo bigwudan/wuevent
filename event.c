@@ -6,6 +6,7 @@
 #include "event-internal.h"
 #include "log.h"
 #include "evutil.h"
+#include "min_heap.h"
 
 extern const struct eventop epollops;
 
@@ -141,7 +142,7 @@ event_set(struct event *ev, int fd, short events,
     ev->ev_flags = EVLIST_INIT;
     ev->ev_ncalls = 0;
     ev->ev_pncalls = NULL;
-    //min_heap_elem_init(ev);
+    min_heap_elem_init(ev);
 
     /* by default, we put new events into the middle priority */
     if(current_base)

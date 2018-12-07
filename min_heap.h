@@ -17,4 +17,9 @@ void min_heap_ctor(min_heap_t* s) { s->p = 0; s->n = 0; s->a = 0; }
 
 
 
+void min_heap_elem_init(struct event* e) { e->min_heap_idx = -1; }
+
+
+
+
 #endif

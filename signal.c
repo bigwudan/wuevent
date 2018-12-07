@@ -54,8 +54,8 @@ evsignal_init(struct event_base *base)
 
     event_set(&base->sig.ev_signal, base->sig.ev_signal_pair[1],
             EV_READ | EV_PERSIST, evsignal_cb, &base->sig.ev_signal);
-//    base->sig.ev_signal.ev_base = base;
-//    base->sig.ev_signal.ev_flags |= EVLIST_INTERNAL;
+    base->sig.ev_signal.ev_base = base;
+    base->sig.ev_signal.ev_flags |= EVLIST_INTERNAL;
 
     return 0;
 
