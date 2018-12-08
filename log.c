@@ -23,7 +23,7 @@ event_errx(int eval, const char *fmt, ...)
 
 }
 
-extern void 
+void 
 event_msgx(const char *fmt, ...)
 {
     printf("msgx \n");
@@ -31,3 +31,9 @@ event_msgx(const char *fmt, ...)
 
 }
 
+void 
+event_warn(const char *fmt, ...)
+{
+    printf("warn \n");
+
+}

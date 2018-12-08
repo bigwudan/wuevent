@@ -8,5 +8,6 @@ extern void event_errx(int eval, const char *fmt, ...);
 
 
 extern void event_msgx(const char *fmt, ...);
+extern void event_warn(const char *fmt, ...);
 
 #endif

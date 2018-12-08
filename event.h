@@ -14,7 +14,30 @@
     }
 #endif /* !TAILQ_ENTRY */
 
+#define EVLIST_TIMEOUT  0x01
+#define EVLIST_INSERTED 0x02
+#define EVLIST_SIGNAL   0x04
+#define EVLIST_ACTIVE   0x08
+#define EVLIST_INTERNAL 0x10
+#define EVLIST_INIT 0x80
+
+/* EVLIST_X_ Private space: 0x1000-0xf000 */
+#define EVLIST_ALL  (0xf000 | 0x9f)
+
+
+
+#define EV_TIMEOUT  0x01
+#define EV_READ     0x02
+#define EV_WRITE    0x04
+#define EV_SIGNAL   0x08
+#define EV_PERSIST  0x10    /* Persistant event */
+
+
+
 struct event_base;
+
+
+
 
 #ifndef EVENT_NO_STRUCT
 struct event {
@@ -53,6 +76,10 @@ extern int  event_base_priority_init(struct event_base *, int);
 
 
 extern struct event_base *event_init(void);
+
+
+
+void event_set(struct event *, int, short, void (*)(int, short, void *), void *);
 
 
 
