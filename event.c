@@ -1,6 +1,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "event.h"
 #include "event-internal.h"
@@ -24,8 +25,9 @@ static const struct eventop *eventops[] = {
 struct event_base *current_base = NULL;
 static int use_monotonic;
 
-
-
+/* Prototypes */
+static void	event_queue_insert(struct event_base *, struct event *, int);
+static void	event_queue_remove(struct event_base *, struct event *, int);
 
 static void
 detect_monotonic(void)
@@ -149,5 +151,195 @@ event_set(struct event *ev, int fd, short events,
         ev->ev_pri = current_base->nactivequeues/2;
 }
 
+int
+event_add(struct event *ev, const struct timeval *tv)
+{
+	struct event_base *base = ev->ev_base;
+	const struct eventop *evsel = base->evsel;
+	void *evbase = base->evbase;
+	int res = 0;
+
+	event_debug((
+				"event_add: event: %p, %s%s%scall %p",
+				ev,
+				ev->ev_events & EV_READ ? "EV_READ " : " ",
+				ev->ev_events & EV_WRITE ? "EV_WRITE " : " ",
+				tv ? "EV_TIMEOUT " : " ",
+				ev->ev_callback));
+
+	assert(!(ev->ev_flags & ~EVLIST_ALL));
+
+	/*
+	 *	 * prepare for timeout insertion further below, if we get a
+	 *		 * failure on any step, we should not change any state.
+	 *			 */
+	if (tv != NULL && !(ev->ev_flags & EVLIST_TIMEOUT)) {
+		if (min_heap_reserve(&base->timeheap,
+					1 + min_heap_size(&base->timeheap)) == -1)
+			return (-1);  /* ENOMEM == errno */
+	}
+
+	if ((ev->ev_events & (EV_READ|EV_WRITE|EV_SIGNAL)) &&
+			!(ev->ev_flags & (EVLIST_INSERTED|EVLIST_ACTIVE))) {
+		res = evsel->add(evbase, ev);
+		if (res != -1)
+			event_queue_insert(base, ev, EVLIST_INSERTED);
+	}
+
+	/* 
+	 *	 * we should change the timout state only if the previous event
+	 *		 * addition succeeded.
+	 *			 */
+	if (res != -1 && tv != NULL) {
+		struct timeval now;
+
+		/* 
+		 *		 * we already reserved memory above for the case where we
+		 *				 * are not replacing an exisiting timeout.
+		 *						 */
+		if (ev->ev_flags & EVLIST_TIMEOUT)
+			event_queue_remove(base, ev, EVLIST_TIMEOUT);
+
+		/* Check if it is active due to a timeout.  Rescheduling
+		 *		 * this timeout before the callback can be executed
+		 *				 * removes it from the active list. */
+		if ((ev->ev_flags & EVLIST_ACTIVE) &&
+				(ev->ev_res & EV_TIMEOUT)) {
+			/* See if we are just active executing this
+			 *			 * event in a loop
+			 *						 */
+			if (ev->ev_ncalls && ev->ev_pncalls) {
+				/* Abort loop */
+				*ev->ev_pncalls = 0;
+			}
+
+			event_queue_remove(base, ev, EVLIST_ACTIVE);
+		}
+
+		gettime(base, &now);
+		evutil_timeradd(&now, tv, &ev->ev_timeout);
+
+		event_debug((
+					"event_add: timeout in %ld seconds, call %p",
+					tv->tv_sec, ev->ev_callback));
+
+		event_queue_insert(base, ev, EVLIST_TIMEOUT);
+	}
+
+	return (res);
+}
+
+int
+event_del(struct event *ev)
+{
+	struct event_base *base;
+	const struct eventop *evsel;
+	void *evbase;
+
+	event_debug(("event_del: %p, callback %p",
+				ev, ev->ev_callback));
+
+	/* An event without a base has not been added */
+	if (ev->ev_base == NULL)
+		return (-1);
+
+	base = ev->ev_base;
+	evsel = base->evsel;
+	evbase = base->evbase;
+
+	assert(!(ev->ev_flags & ~EVLIST_ALL));
+
+	/* See if we are just active executing this event in a loop */
+	if (ev->ev_ncalls && ev->ev_pncalls) {
+		/* Abort loop */
+		*ev->ev_pncalls = 0;
+	}
+
+	if (ev->ev_flags & EVLIST_TIMEOUT)
+		event_queue_remove(base, ev, EVLIST_TIMEOUT);
+
+	if (ev->ev_flags & EVLIST_ACTIVE)
+		event_queue_remove(base, ev, EVLIST_ACTIVE);
+
+	if (ev->ev_flags & EVLIST_INSERTED) {
+		event_queue_remove(base, ev, EVLIST_INSERTED);
+		return (evsel->del(evbase, ev));
+	}
+
+	return (0);
+}
+
+
+
+
+
+
+
+
+void
+event_queue_insert(struct event_base *base, struct event *ev, int queue)
+{
+	if (ev->ev_flags & queue) {
+		/* Double insertion is possible for active events */
+		if (queue & EVLIST_ACTIVE)
+			return;
+
+		event_errx(1, "%s: %p(fd %d) already on queue %x", __func__,
+				ev, ev->ev_fd, queue);
+	}
+
+	if (~ev->ev_flags & EVLIST_INTERNAL)
+		base->event_count++;
+
+	ev->ev_flags |= queue;
+	switch (queue) {
+		case EVLIST_INSERTED:
+			TAILQ_INSERT_TAIL(&base->eventqueue, ev, ev_next);
+			break;
+		case EVLIST_ACTIVE:
+			base->event_count_active++;
+			TAILQ_INSERT_TAIL(base->activequeues[ev->ev_pri],
+					ev,ev_active_next);
+			break;
+		case EVLIST_TIMEOUT: {
+								 min_heap_push(&base->timeheap, ev);
+								 break;
+							 }
+		default:
+							 event_errx(1, "%s: unknown queue %x", __func__, queue);
+	}
+}
+
+
+
+
+
+void
+event_queue_remove(struct event_base *base, struct event *ev, int queue)
+{
+	if (!(ev->ev_flags & queue))
+		event_errx(1, "%s: %p(fd %d) not on queue %x", __func__,
+				ev, ev->ev_fd, queue);
+
+	if (~ev->ev_flags & EVLIST_INTERNAL)
+		base->event_count--;
+
+	ev->ev_flags &= ~queue;
+	switch (queue) {
+		case EVLIST_INSERTED:
+			TAILQ_REMOVE(&base->eventqueue, ev, ev_next);
+			break;
+		case EVLIST_ACTIVE:
+			base->event_count_active--;
+			TAILQ_REMOVE(base->activequeues[ev->ev_pri],
+					ev, ev_active_next);
+			break;
+		case EVLIST_TIMEOUT:
+			min_heap_erase(&base->timeheap, ev);
+			break;
+		default:
+			event_errx(1, "%s: unknown queue %x", __func__, queue);
+	}
+}
 
 

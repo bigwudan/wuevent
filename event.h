@@ -70,6 +70,11 @@ struct event;
 TAILQ_HEAD (event_list, event);
 TAILQ_HEAD (evkeyvalq, evkeyval);
 
+#define evtimer_add(ev, tv)		event_add(ev, tv)
+#define evtimer_del(ev)			event_del(ev)
+
+#define evtimer_set(ev, cb, arg)	event_set(ev, -1, 0, cb, arg)
+
 extern struct event_base *event_base_new(void);
 
 extern int  event_base_priority_init(struct event_base *, int);
@@ -80,8 +85,8 @@ extern struct event_base *event_init(void);
 
 
 void event_set(struct event *, int, short, void (*)(int, short, void *), void *);
-
-
+int event_add(struct event *ev, const struct timeval *timeout);
+int event_del(struct event *);
 
 
 
