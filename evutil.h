@@ -38,6 +38,12 @@ int evutil_make_socket_nonblocking(int sock);
 	} while (0)
 #endif /* !_EVENT_HAVE_HAVE_TIMERADD */
 
+#ifdef _EVENT_HAVE_TIMERCLEAR
+#define evutil_timerclear(tvp) timerclear(tvp)
+#else
+#define	evutil_timerclear(tvp)	(tvp)->tv_sec = (tvp)->tv_usec = 0
+#endif
+
 
 
 #define	evutil_timercmp(tvp, uvp, cmp)							\

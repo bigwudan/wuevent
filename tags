@@ -46,7 +46,7 @@ EV_TIMEOUT	event.h	29;"	d
 EV_WRITE	event.h	31;"	d
 FD_CLOSEONEXEC	epoll.c	54;"	d	file:
 FD_CLOSEONEXEC	epoll.c	59;"	d	file:
-FD_CLOSEONEXEC	signal.c	17;"	d	file:
+FD_CLOSEONEXEC	signal.c	18;"	d	file:
 INITIAL_NEVENTS	epoll.c	63;"	d	file:
 INITIAL_NFILES	epoll.c	62;"	d	file:
 ITIMER_PROF	sys/_libevent_time.h	136;"	d
@@ -165,6 +165,7 @@ evbase	event-internal.h	/^    void *evbase;$/;"	m	struct:event_base
 event	event.h	/^struct event {$/;"	s
 event_add	event.c	/^event_add(struct event *ev, const struct timeval *tv)$/;"	f
 event_base	event-internal.h	/^struct event_base {$/;"	s
+event_base_loop	event.c	/^event_base_loop(struct event_base *base, int flags)$/;"	f
 event_base_new	event.c	/^event_base_new(void)$/;"	f
 event_base_priority_init	event.c	/^event_base_priority_init(struct event_base *base, int npriorities)$/;"	f
 event_break	event-internal.h	/^    int event_break;        \/* Set to terminate loop immediately *\/$/;"	m	struct:event_base
@@ -173,10 +174,12 @@ event_count_active	event-internal.h	/^    int event_count_active; \/* counts num
 event_debug	log.h	13;"	d
 event_debug	log.h	15;"	d
 event_del	event.c	/^event_del(struct event *ev)$/;"	f
+event_dispatch	event.c	/^event_dispatch(void)$/;"	f
 event_err	log.c	/^event_err(int eval, const char *fmt, ...)$/;"	f
 event_errx	log.c	/^event_errx(int eval, const char *fmt, ...)$/;"	f
 event_gotterm	event-internal.h	/^    int event_gotterm;      \/* Set to terminate loop *\/$/;"	m	struct:event_base
 event_init	event.c	/^event_init(void)$/;"	f
+event_loop	event.c	/^event_loop(int flags)$/;"	f
 event_msgx	log.c	/^event_msgx(const char *fmt, ...)$/;"	f
 event_queue_insert	event.c	/^event_queue_insert(struct event_base *base, struct event *ev, int queue)$/;"	f
 event_queue_remove	event.c	/^event_queue_remove(struct event_base *base, struct event *ev, int queue)$/;"	f
@@ -192,6 +195,7 @@ evread	epoll.c	/^    struct event *evread;$/;"	m	struct:evepoll	typeref:struct:e
 evsel	event-internal.h	/^    const struct eventop *evsel;$/;"	m	struct:event_base	typeref:struct:event_base::eventop
 evsigcaught	evsignal.h	/^    sig_atomic_t evsigcaught[NSIG];$/;"	m	struct:evsignal_info
 evsigevents	evsignal.h	/^    struct event_list evsigevents[NSIG];$/;"	m	struct:evsignal_info	typeref:struct:evsignal_info::event_list
+evsignal_base	signal.c	/^struct event_base *evsignal_base = NULL;$/;"	v	typeref:struct:event_base
 evsignal_caught	evsignal.h	/^    volatile sig_atomic_t evsignal_caught;$/;"	m	struct:evsignal_info
 evsignal_cb	signal.c	/^evsignal_cb(int fd, short what, void *arg)$/;"	f	file:
 evsignal_info	evsignal.h	/^struct evsignal_info {$/;"	s
@@ -249,6 +253,7 @@ tick	sys/_libevent_time.h	/^	int	tick;		\/* micro-seconds per hz tick *\/$/;"	m	
 tickadj	sys/_libevent_time.h	/^	int	tickadj;	\/* clock skew rate for adjtime() *\/$/;"	m	struct:clockinfo
 time_cb	test_main.c	/^time_cb(int fd, short event, void *arg)$/;"	f	file:
 timeheap	event-internal.h	/^    struct min_heap timeheap;$/;"	m	struct:event_base	typeref:struct:event_base::min_heap
+timeout_correct	event.c	/^timeout_correct(struct event_base *base, struct timeval *tv)$/;"	f	file:
 timeradd	sys/_libevent_time.h	85;"	d
 timerclear	sys/_libevent_time.h	79;"	d
 timercmp	sys/_libevent_time.h	81;"	d

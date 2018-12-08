@@ -13,6 +13,7 @@
 #include "log.h"
 #include "evutil.h"
 
+struct event_base *evsignal_base = NULL;
 
 #define FD_CLOSEONEXEC(x) do { \
     if (fcntl(x, F_SETFD, 1) == -1) \
@@ -20,7 +21,7 @@
 } while (0)
 
 
-    static void
+static void
 evsignal_cb(int fd, short what, void *arg)
 {
     static char signals[1];

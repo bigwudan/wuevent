@@ -44,23 +44,17 @@ time_cb(int fd, short event, void *arg)
 
 int main(int argv ,char* agrs[])
 {
-
 	struct timeval tv;
 	int i;
-
 	event_init();
-
-
 	for (i = 0; i < NEVENT; i++) {
 		ev[i] = malloc(sizeof(struct event));
-
 		/* Initalize one event */
 		evtimer_set(ev[i], time_cb, ev[i]);
 		tv.tv_sec = 0;
 		tv.tv_usec = rand_int(50000);
 		evtimer_add(ev[i], &tv);
 	}
-
-
+	event_dispatch();
     printf("test\n");
 }

@@ -76,17 +76,27 @@ TAILQ_HEAD (evkeyvalq, evkeyval);
 #define evtimer_set(ev, cb, arg)	event_set(ev, -1, 0, cb, arg)
 
 extern struct event_base *event_base_new(void);
-
 extern int  event_base_priority_init(struct event_base *, int);
-
-
 extern struct event_base *event_init(void);
-
-
-
 void event_set(struct event *, int, short, void (*)(int, short, void *), void *);
 int event_add(struct event *ev, const struct timeval *timeout);
 int event_del(struct event *);
+
+void event_active(struct event *, int, short);
+
+int event_dispatch(void);
+int event_loop(int);
+int event_base_loop(struct event_base *, int);
+
+
+/**
+ *  event_loop() flags
+ *   */
+/*@{*/
+#define EVLOOP_ONCE	0x01	/**< Block at most once. */
+#define EVLOOP_NONBLOCK	0x02	/**< Do not block. */
+/*@}*/
+
 
 
 
