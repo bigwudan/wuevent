@@ -152,7 +152,6 @@ epoll_add    (void *arg, struct event *ev)
 
     fd = ev->ev_fd;
     if (fd >= epollop->nfds) {
-        /* Extent the file descriptor array as necessary */
         if (epoll_recalc(ev->ev_base, epollop, fd) == -1)
             return (-1);
     }

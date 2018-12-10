@@ -216,7 +216,6 @@ evsignal_handler(int sig)
     }
     evsignal_base->sig.evsigcaught[sig]++;
     evsignal_base->sig.evsignal_caught = 1;
-    signal(sig, evsignal_handler);
     /* Wake up our notification mechanism */
     send(evsignal_base->sig.ev_signal_pair[0], "a", 1, 0);
     errno = save_errno;

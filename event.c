@@ -183,10 +183,6 @@ event_add(struct event *ev, const struct timeval *tv)
 
 	assert(!(ev->ev_flags & ~EVLIST_ALL));
 
-	/*
-	 *	 * prepare for timeout insertion further below, if we get a
-	 *		 * failure on any step, we should not change any state.
-	 *			 */
 	if (tv != NULL && !(ev->ev_flags & EVLIST_TIMEOUT)) {
 		if (min_heap_reserve(&base->timeheap,
 					1 + min_heap_size(&base->timeheap)) == -1)
@@ -200,30 +196,15 @@ event_add(struct event *ev, const struct timeval *tv)
 			event_queue_insert(base, ev, EVLIST_INSERTED);
 	}
 
-	/* 
-	 *	 * we should change the timout state only if the previous event
-	 *		 * addition succeeded.
-	 *			 */
 	if (res != -1 && tv != NULL) {
 		struct timeval now;
 
-		/* 
-		 *		 * we already reserved memory above for the case where we
-		 *				 * are not replacing an exisiting timeout.
-		 *						 */
 		if (ev->ev_flags & EVLIST_TIMEOUT)
 			event_queue_remove(base, ev, EVLIST_TIMEOUT);
 
-		/* Check if it is active due to a timeout.  Rescheduling
-		 *		 * this timeout before the callback can be executed
-		 *				 * removes it from the active list. */
 		if ((ev->ev_flags & EVLIST_ACTIVE) &&
 				(ev->ev_res & EV_TIMEOUT)) {
-			/* See if we are just active executing this
-			 *			 * event in a loop
-			 *						 */
 			if (ev->ev_ncalls && ev->ev_pncalls) {
-				/* Abort loop */
 				*ev->ev_pncalls = 0;
 			}
 
@@ -232,14 +213,11 @@ event_add(struct event *ev, const struct timeval *tv)
 
 		gettime(base, &now);
 		evutil_timeradd(&now, tv, &ev->ev_timeout);
-
 		event_debug((
 					"event_add: timeout in %ld seconds, call %p",
 					tv->tv_sec, ev->ev_callback));
-
 		event_queue_insert(base, ev, EVLIST_TIMEOUT);
 	}
-
 	return (res);
 }
 
