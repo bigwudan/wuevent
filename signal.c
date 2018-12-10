@@ -223,6 +223,51 @@ evsignal_handler(int sig)
 }
 
 
+void
+evsignal_process(struct event_base *base)
+{
+    struct evsignal_info *sig = &base->sig;
+    struct event *ev, *next_ev;
+    sig_atomic_t ncalls;
+    int i;
+    base->sig.evsignal_caught = 0;
+    for (i = 1; i < NSIG; ++i) {
+        ncalls = sig->evsigcaught[i];
+        if (ncalls == 0)
+            continue;
+        sig->evsigcaught[i] -= ncalls;
+
+        for (ev = TAILQ_FIRST(&sig->evsigevents[i]);
+                ev != NULL; ev = next_ev) {
+            next_ev = TAILQ_NEXT(ev, ev_signal_next);
+            if (!(ev->ev_events & EV_PERSIST))
+                event_del(ev);
+            event_active(ev, EV_SIGNAL, ncalls);
+        }
+    }
+}
+
+void
+evsignal_dealloc(struct event_base *base)
+{
+    int i = 0;
+    if (base->sig.ev_signal_added) {
+        event_del(&base->sig.ev_signal);
+        base->sig.ev_signal_added = 0;
+    }
+    for (i = 0; i < NSIG; ++i) {
+        if (i < base->sig.sh_old_max && base->sig.sh_old[i] != NULL)
+            _evsignal_restore_handler(base, i);
+    }
+    EVUTIL_CLOSESOCKET(base->sig.ev_signal_pair[0]);
+    base->sig.ev_signal_pair[0] = -1;
+    EVUTIL_CLOSESOCKET(base->sig.ev_signal_pair[1]);
+    base->sig.ev_signal_pair[1] = -1;
+    base->sig.sh_old_max = 0;
+    /* per index frees are handled in evsignal_del() */
+    free(base->sig.sh_old);
+}
+
 
 
 

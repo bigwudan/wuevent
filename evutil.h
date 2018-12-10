@@ -44,7 +44,7 @@ int evutil_make_socket_nonblocking(int sock);
 #define	evutil_timerclear(tvp)	(tvp)->tv_sec = (tvp)->tv_usec = 0
 #endif
 
-
+#define EVUTIL_CLOSESOCKET(s) close(s)
 
 #define	evutil_timercmp(tvp, uvp, cmp)							\
 	(((tvp)->tv_sec == (uvp)->tv_sec) ?							\
