@@ -108,9 +108,49 @@ void *epoll_init (struct event_base *base)
 }
 
 static int 
-epoll_add    (void *a, struct event *p)
+epoll_add    (void *arg, struct event *ev)
 {
+    struct epollop *epollop = arg;
+    struct epoll_event epev = {0, {0}};
+    struct evepoll *evep;
+    int fd, op, events;
 
+    if (ev->ev_events & EV_SIGNAL)
+        return (evsignal_add(ev));
+
+    fd = ev->ev_fd;
+    if (fd >= epollop->nfds) {
+        /* Extent the file descriptor array as necessary */
+        if (epoll_recalc(ev->ev_base, epollop, fd) == -1)
+            return (-1);
+    }
+    evep = &epollop->fds[fd];
+    op = EPOLL_CTL_ADD;
+    events = 0;
+    if (evep->evread != NULL) {
+        events |= EPOLLIN;
+        op = EPOLL_CTL_MOD;
+    }
+    if (evep->evwrite != NULL) {
+        events |= EPOLLOUT;
+        op = EPOLL_CTL_MOD;
+    }
+
+    if (ev->ev_events & EV_READ)
+        events |= EPOLLIN;
+    if (ev->ev_events & EV_WRITE)
+        events |= EPOLLOUT;
+
+    epev.data.fd = fd;
+    epev.events = events;
+    if (epoll_ctl(epollop->epfd, op, ev->ev_fd, &epev) == -1)
+        return (-1);
+    /* Update events responsible */
+    if (ev->ev_events & EV_READ)
+        evep->evread = ev;
+    if (ev->ev_events & EV_WRITE)
+        evep->evwrite = ev;
+    return (0);
 }
 
 static int 

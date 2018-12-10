@@ -75,6 +75,10 @@ TAILQ_HEAD (evkeyvalq, evkeyval);
 
 #define evtimer_set(ev, cb, arg)	event_set(ev, -1, 0, cb, arg)
 
+#define EVENT_SIGNAL(ev)    (int)(ev)->ev_fd
+#define EVENT_FD(ev)        (int)(ev)->ev_fd
+
+
 extern struct event_base *event_base_new(void);
 extern int  event_base_priority_init(struct event_base *, int);
 extern struct event_base *event_init(void);

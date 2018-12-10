@@ -1,60 +1,48 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #include "event.h"
 
 
 
-
 int called = 0;
-#define NEVENT	20000
 
-struct event *ev[NEVENT];
-
-
-static int
-rand_int(int n)
+    static void
+signal_cb(int fd, short event, void *arg)
 {
-	return (int)(random() % n);
+    struct event *signal = arg;
+
+    printf("%s: got signal %d\n", __func__, EVENT_SIGNAL(signal));
+
+    if (called >= 2)
+        event_del(signal);
+
+    called++;
+}
+
+    int
+main (int argc, char **argv)
+{
+    
+
+    struct event signal_int;
+
+    /* Initalize the event library */
+    event_init();
+
+    /* Initalize one event */
+    event_set(&signal_int, SIGINT, EV_SIGNAL|EV_PERSIST, signal_cb,
+            &signal_int);
+
+    event_add(&signal_int, NULL);
+
+    event_dispatch();
+
+    return (0);
 }
 
 
 
-static void
-time_cb(int fd, short event, void *arg)
-{
-	struct timeval tv;
-	int i, j;
-	called++;
-	if (called < 10*NEVENT) {
-		for (i = 0; i < 10; i++) {
-			j = rand_int(NEVENT);
-			tv.tv_sec = 0;
-			tv.tv_usec = rand_int(50000);
-			if (tv.tv_usec % 2)
-				evtimer_add(ev[j], &tv);
-			else
-				evtimer_del(ev[j]);
-		}
-	}
-}
 
 
-
-
-int main(int argv ,char* agrs[])
-{
-	struct timeval tv;
-	int i;
-	event_init();
-	for (i = 0; i < NEVENT; i++) {
-		ev[i] = malloc(sizeof(struct event));
-		/* Initalize one event */
-		evtimer_set(ev[i], time_cb, ev[i]);
-		tv.tv_sec = 0;
-		tv.tv_usec = rand_int(50000);
-		evtimer_add(ev[i], &tv);
-	}
-	event_dispatch();
-    printf("test\n");
-}
