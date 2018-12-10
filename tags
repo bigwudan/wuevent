@@ -43,16 +43,17 @@ EVLIST_SIGNAL	event.h	19;"	d
 EVLIST_TIMEOUT	event.h	17;"	d
 EVLOOP_NONBLOCK	event.h	101;"	d
 EVLOOP_ONCE	event.h	100;"	d
+EVUTIL_CLOSESOCKET	evutil.h	47;"	d
 EV_PERSIST	event.h	33;"	d
 EV_READ	event.h	30;"	d
 EV_SIGNAL	event.h	32;"	d
 EV_TIMEOUT	event.h	29;"	d
 EV_WRITE	event.h	31;"	d
-FD_CLOSEONEXEC	epoll.c	55;"	d	file:
-FD_CLOSEONEXEC	epoll.c	60;"	d	file:
+FD_CLOSEONEXEC	epoll.c	58;"	d	file:
+FD_CLOSEONEXEC	epoll.c	63;"	d	file:
 FD_CLOSEONEXEC	signal.c	26;"	d	file:
-INITIAL_NEVENTS	epoll.c	64;"	d	file:
-INITIAL_NFILES	epoll.c	63;"	d	file:
+INITIAL_NEVENTS	epoll.c	67;"	d	file:
+INITIAL_NFILES	epoll.c	66;"	d	file:
 ITIMER_PROF	sys/_libevent_time.h	136;"	d
 ITIMER_REAL	sys/_libevent_time.h	134;"	d
 ITIMER_VIRTUAL	sys/_libevent_time.h	135;"	d
@@ -70,7 +71,8 @@ LIST_INSERT_HEAD	sys/queue.h	189;"	d
 LIST_NEXT	sys/queue.h	160;"	d
 LIST_REMOVE	sys/queue.h	196;"	d
 LIST_REPLACE	sys/queue.h	203;"	d
-MAX_NEVENTS	epoll.c	65;"	d	file:
+MAX_EPOLL_TIMEOUT_MSEC	epoll.c	18;"	d	file:
+MAX_NEVENTS	epoll.c	68;"	d	file:
 NEVENT	test_time.c	10;"	d	file:
 SIMPLEQ_EMPTY	sys/queue.h	233;"	d
 SIMPLEQ_END	sys/queue.h	232;"	d
@@ -129,6 +131,7 @@ _LOG_H_	log.h	2;"	d
 _MIN_HEAP_H_	min_heap.h	2;"	d
 _SYS_QUEUE_H_	sys/queue.h	36;"	d
 _SYS_TIME_H_	sys/_libevent_time.h	36;"	d
+_evsignal_restore_handler	signal.c	/^_evsignal_restore_handler(struct event_base *base, int evsignal)$/;"	f
 _evsignal_set_handler	signal.c	/^_evsignal_set_handler(struct event_base *base,$/;"	f
 a	min_heap.h	/^	unsigned n, a;$/;"	m	struct:min_heap
 activequeues	event-internal.h	/^    struct event_list **activequeues;$/;"	m	struct:event_base	typeref:struct:event_base::event_list
@@ -143,9 +146,9 @@ detect_monotonic	event.c	/^detect_monotonic(void)$/;"	f	file:
 dispatch	event-internal.h	/^    int (*dispatch)(struct event_base *, void *, struct timeval *);$/;"	m	struct:eventop
 epfd	epoll.c	/^    int epfd;$/;"	m	struct:epollop	file:
 epoll_add	epoll.c	/^epoll_add    (void *arg, struct event *ev)$/;"	f	file:
-epoll_dealloc	epoll.c	/^epoll_dealloc   (struct event_base *p, void *a)$/;"	f	file:
+epoll_dealloc	epoll.c	/^epoll_dealloc   (struct event_base *base, void *arg)$/;"	f	file:
 epoll_del	epoll.c	/^epoll_del    (void *arg, struct event *ev)$/;"	f	file:
-epoll_dispatch	epoll.c	/^epoll_dispatch   (struct event_base *p, void *a, struct timeval *b)$/;"	f	file:
+epoll_dispatch	epoll.c	/^epoll_dispatch   (struct event_base *base, void *arg, struct timeval *tv)$/;"	f	file:
 epoll_init	epoll.c	/^void *epoll_init (struct event_base *base)$/;"	f	file:
 epoll_recalc	epoll.c	/^epoll_recalc(struct event_base *base, void *arg, int max)$/;"	f	file:
 epollop	epoll.c	/^struct epollop {$/;"	s	file:
@@ -209,9 +212,12 @@ evsignal_add	signal.c	/^int evsignal_add(struct event *ev)$/;"	f
 evsignal_base	signal.c	/^struct event_base *evsignal_base = NULL;$/;"	v	typeref:struct:event_base
 evsignal_caught	evsignal.h	/^    volatile sig_atomic_t evsignal_caught;$/;"	m	struct:evsignal_info
 evsignal_cb	signal.c	/^evsignal_cb(int fd, short what, void *arg)$/;"	f	file:
+evsignal_dealloc	signal.c	/^evsignal_dealloc(struct event_base *base)$/;"	f
+evsignal_del	signal.c	/^evsignal_del(struct event *ev)$/;"	f
 evsignal_handler	signal.c	/^evsignal_handler(int sig)$/;"	f	file:
 evsignal_info	evsignal.h	/^struct evsignal_info {$/;"	s
 evsignal_init	signal.c	/^evsignal_init(struct event_base *base)$/;"	f
+evsignal_process	signal.c	/^evsignal_process(struct event_base *base)$/;"	f
 evtimer_add	event.h	73;"	d
 evtimer_del	event.h	74;"	d
 evtimer_set	event.h	76;"	d
