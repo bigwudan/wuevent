@@ -162,6 +162,47 @@ int evsignal_add(struct event *ev)
 }
 
 
+int
+_evsignal_restore_handler(struct event_base *base, int evsignal)
+{
+    int ret = 0;
+    struct evsignal_info *sig = &base->sig;
+    struct sigaction *sh;
+
+    /* restore previous handler */
+    sh = sig->sh_old[evsignal];
+    sig->sh_old[evsignal] = NULL;
+    if (sigaction(evsignal, sh, NULL) == -1) {
+        event_warn("sigaction");
+        ret = -1;
+    }
+    free(sh);
+    return ret;
+}
+
+
+int
+evsignal_del(struct event *ev)
+{
+    struct event_base *base = ev->ev_base;
+    struct evsignal_info *sig = &base->sig;
+    int evsignal = EVENT_SIGNAL(ev);
+
+    assert(evsignal >= 0 && evsignal < NSIG);
+
+    /* multiple events may listen to the same signal */
+    TAILQ_REMOVE(&sig->evsigevents[evsignal], ev, ev_signal_next);
+
+    if (!TAILQ_EMPTY(&sig->evsigevents[evsignal]))
+        return (0);
+
+    event_debug(("%s: %p: restoring signal handler", __func__, ev));
+
+    return (_evsignal_restore_handler(ev->ev_base, EVENT_SIGNAL(ev)));
+}
+
+
+
 static void
 evsignal_handler(int sig)
 {

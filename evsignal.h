@@ -18,5 +18,12 @@ struct evsignal_info {
 
 extern int evsignal_init(struct event_base *);
 
+void evsignal_process(struct event_base *);
+int evsignal_add(struct event *);
+int evsignal_del(struct event *);
+void evsignal_dealloc(struct event_base *);
+
+
+
 
 #endif

@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 
 
@@ -64,6 +65,34 @@ const struct eventop epollops = {
 #define MAX_NEVENTS 4096
 
 
+
+
+static int
+epoll_recalc(struct event_base *base, void *arg, int max)
+{
+    struct epollop *epollop = arg;
+
+    if (max >= epollop->nfds) {
+        struct evepoll *fds;
+        int nfds;
+
+        nfds = epollop->nfds;
+        while (nfds <= max)
+            nfds <<= 1;
+
+        fds = realloc(epollop->fds, nfds * sizeof(struct evepoll));
+        if (fds == NULL) {
+            event_warn("realloc");
+            return (-1);
+        }
+        epollop->fds = fds;
+        memset(fds + epollop->nfds, 0,
+                (nfds - epollop->nfds) * sizeof(struct evepoll));
+        epollop->nfds = nfds;
+    }
+
+    return (0);
+}
 
 
 static 
@@ -154,10 +183,53 @@ epoll_add    (void *arg, struct event *ev)
 }
 
 static int 
-epoll_del    (void *a, struct event *p)
+epoll_del    (void *arg, struct event *ev)
 {
 
+    struct epollop *epollop = arg;
+    struct epoll_event epev = {0, {0}};
+    struct evepoll *evep;
+    int fd, events, op;
+    int needwritedelete = 1, needreaddelete = 1;
 
+    if (ev->ev_events & EV_SIGNAL)
+        return (evsignal_del(ev));
+
+    fd = ev->ev_fd;
+    if (fd >= epollop->nfds)
+        return (0);
+    evep = &epollop->fds[fd];
+
+    op = EPOLL_CTL_DEL;
+    events = 0;
+
+    if (ev->ev_events & EV_READ)
+        events |= EPOLLIN;
+    if (ev->ev_events & EV_WRITE)
+        events |= EPOLLOUT;
+
+    if ((events & (EPOLLIN|EPOLLOUT)) != (EPOLLIN|EPOLLOUT)) {
+        if ((events & EPOLLIN) && evep->evwrite != NULL) {
+            needwritedelete = 0;
+            events = EPOLLOUT;
+            op = EPOLL_CTL_MOD;
+        } else if ((events & EPOLLOUT) && evep->evread != NULL) {
+            needreaddelete = 0;
+            events = EPOLLIN;
+            op = EPOLL_CTL_MOD;
+        }
+    }
+
+    epev.events = events;
+    epev.data.fd = fd;
+
+    if (needreaddelete)
+        evep->evread = NULL;
+    if (needwritedelete)
+        evep->evwrite = NULL;
+    if (epoll_ctl(epollop->epfd, op, fd, &epev) == -1)
+        return (-1);
+    return (0);
 
 }
 
