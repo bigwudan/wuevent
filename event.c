@@ -46,16 +46,19 @@ static void	timeout_correct(struct event_base *, struct timeval *);
 static void
 detect_monotonic(void)
 {
+    //默认支持
     use_monotonic = 1;
 }
 
 static int
 gettime(struct event_base *base, struct timeval *tp)
 {
+    //如果有缓存时间，直接读取缓存时间
     if (base->tv_cache.tv_sec) {
         *tp = base->tv_cache;
         return (0);
     }
+    //没有缓存时间，计算系统开始经历的时间
     if (use_monotonic) {
         struct timespec ts;
         if (clock_gettime(CLOCK_MONOTONIC, &ts) == -1)
@@ -85,18 +88,23 @@ event_base_new(void)
 {
     int i;
     struct event_base *base;
-
+    //创建base堆内存
     if ((base = calloc(1, sizeof(struct event_base))) == NULL)
         event_err(1, "%s: calloc", __func__);
+    //检查是否支持monotonic(系统开始计算时间)
     detect_monotonic();
+    //得到当前时间
     gettime(base, &base->event_tv);
-
+    //初始化最小堆
     min_heap_ctor(&base->timeheap);
+    //初始化任务队列
     TAILQ_INIT(&base->eventqueue);
+    //信号管道
     base->sig.ev_signal_pair[0] = -1;
     base->sig.ev_signal_pair[1] = -1;
-
+    //事件驱动引擎
     base->evbase = NULL;
+    //依据配置读取事件驱动
     for (i = 0; eventops[i] && !base->evbase; i++) {
         base->evsel = eventops[i];
 
@@ -120,8 +128,10 @@ int
 event_base_priority_init(struct event_base *base, int npriorities)
 {
     int i;
+    //有活动失败
     if (base->event_count_active)
         return (-1);
+    //存在活动数量，当前需要调整的优先级不等于现在的优化级，清理原来的数据
     if (base->nactivequeues && npriorities != base->nactivequeues) {
         for (i = 0; i < base->nactivequeues; ++i) {
             free(base->activequeues[i]);
@@ -130,10 +140,12 @@ event_base_priority_init(struct event_base *base, int npriorities)
     }
     /* Allocate our priority queues */
     base->nactivequeues = npriorities;
+    //根据优先数，指针数组初始化，
     base->activequeues = (struct event_list **)
         calloc(base->nactivequeues, sizeof(struct event_list *));
     if (base->activequeues == NULL)
         event_err(1, "%s: calloc", __func__);
+    //初始化每个优先级数组
     for (i = 0; i < base->nactivequeues; ++i) {
         base->activequeues[i] = malloc(sizeof(struct event_list));
         if (base->activequeues[i] == NULL)
@@ -148,20 +160,30 @@ event_set(struct event *ev, int fd, short events,
         void (*callback)(int, short, void *), void *arg)
 {
     /* Take the current base - caller needs to set the real base later */
+    //主属性
     ev->ev_base = current_base;
-
+    //回调函数
     ev->ev_callback = callback;
+    //参数
     ev->ev_arg = arg;
+    //句柄
     ev->ev_fd = fd;
+    //事件内心
     ev->ev_events = events;
+    //激活事件
     ev->ev_res = 0;
+    //事件状态
     ev->ev_flags = EVLIST_INIT;
+    //回调次数
     ev->ev_ncalls = 0;
+    //回调是否结束
     ev->ev_pncalls = NULL;
+    //初始化事件最小堆站,事件对应数组索引
     min_heap_elem_init(ev);
 
     /* by default, we put new events into the middle priority */
     if(current_base)
+        //初始化优先权限
         ev->ev_pri = current_base->nactivequeues/2;
 }
 

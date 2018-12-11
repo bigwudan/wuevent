@@ -101,21 +101,24 @@ evsignal_cb(int fd, short what, void *arg)
 int 
 evsignal_init(struct event_base *base)
 {
+    //生成信号管道
     int i;
     if (evutil_socketpair(
                 AF_UNIX, SOCK_STREAM, 0, base->sig.ev_signal_pair) == -1) {
         event_warn("%s: socketpair", __func__);
         return -1;
     }
-
+    //关闭，继承无效
     FD_CLOSEONEXEC(base->sig.ev_signal_pair[0]);
     FD_CLOSEONEXEC(base->sig.ev_signal_pair[1]);
     base->sig.sh_old = NULL;
     base->sig.sh_old_max = 0;
+    //是否有信号来
     base->sig.evsignal_caught = 0;
+    //每种信号激活次数，数组
     memset(&base->sig.evsigcaught, 0, sizeof(sig_atomic_t)*NSIG);
     for (i = 0; i < NSIG; ++i)
-        TAILQ_INIT(&base->sig.evsigevents[i]);
+        TAILQ_INIT(&base->sig.evsigevents[i]);//每种信号生成event链表
 
     evutil_make_socket_nonblocking(base->sig.ev_signal_pair[0]);
 

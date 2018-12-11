@@ -104,23 +104,24 @@ void *epoll_init (struct event_base *base)
     int epfd;
     struct epollop *epollop;
 
-    /* Disable epollueue when this environment variable is set */
+    //系统是否支持epoll
     if (evutil_getenv("EVENT_NOEPOLL"))
         return (NULL);
+    //创建epoll句柄
     if ((epfd = epoll_create(32000)) == -1) {
         if (errno != ENOSYS)
             event_warn("epoll_create");
         return (NULL);
     }
-
+    //关闭，继承无法使用 
     FD_CLOSEONEXEC(epfd);
     
     if (!(epollop = calloc(1, sizeof(struct epollop))))
         return (NULL);
 
     epollop->epfd = epfd;
-
-    /* Initalize fields */
+    
+    //初始化事件数
     epollop->events = malloc(INITIAL_NEVENTS * sizeof(struct epoll_event));
     if (epollop->events == NULL) {
         free(epollop);
@@ -135,6 +136,7 @@ void *epoll_init (struct event_base *base)
         return (NULL);
     }
     epollop->nfds = INITIAL_NFILES;
+    //初始化信号
     evsignal_init(base);
     return (epollop);
 }

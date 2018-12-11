@@ -6,7 +6,9 @@
 
 typedef struct min_heap
 {
+    //指向event*类型数组
 	struct event** p;
+    //n是元素个数，a表示p指向内存的尺寸(这命名好猥琐)
 	unsigned n, a;
 } min_heap_t;
 
