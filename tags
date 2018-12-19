@@ -74,6 +74,8 @@ LIST_REPLACE	sys/queue.h	203;"	d
 MAX_EPOLL_TIMEOUT_MSEC	epoll.c	18;"	d	file:
 MAX_NEVENTS	epoll.c	68;"	d	file:
 NEVENT	test_time.c	10;"	d	file:
+SHUT_WR	test_event.c	45;"	d	file:
+SHUT_WR	test_main.c	45;"	d	file:
 SIMPLEQ_EMPTY	sys/queue.h	233;"	d
 SIMPLEQ_END	sys/queue.h	232;"	d
 SIMPLEQ_ENTRY	sys/queue.h	223;"	d
@@ -136,7 +138,9 @@ _evsignal_set_handler	signal.c	/^_evsignal_set_handler(struct event_base *base,$
 a	min_heap.h	/^	unsigned n, a;$/;"	m	struct:min_heap
 activequeues	event-internal.h	/^    struct event_list **activequeues;$/;"	m	struct:event_base	typeref:struct:event_base::event_list
 add	event-internal.h	/^    int (*add)(void *, struct event *);$/;"	m	struct:eventop
+called	test_event.c	/^int called = 0;$/;"	v
 called	test_main.c	/^int called = 0;$/;"	v
+called	test_signal.c	/^int called = 0;$/;"	v
 called	test_time.c	/^int called = 0;$/;"	v
 clockinfo	sys/_libevent_time.h	/^struct clockinfo {$/;"	s
 current_base	event.c	/^struct event_base *current_base = NULL;$/;"	v	typeref:struct:event_base
@@ -239,7 +243,9 @@ init	event-internal.h	/^    void *(*init)(struct event_base *);$/;"	m	struct:eve
 it_interval	sys/_libevent_time.h	/^	struct	timeval it_interval;	\/* timer interval *\/$/;"	m	struct:itimerval	typeref:struct:itimerval::timeval
 it_value	sys/_libevent_time.h	/^	struct	timeval it_value;	\/* current value *\/$/;"	m	struct:itimerval	typeref:struct:itimerval::timeval
 itimerval	sys/_libevent_time.h	/^struct	itimerval {$/;"	s
+main	test_event.c	/^main (int argc, char **argv)$/;"	f
 main	test_main.c	/^main (int argc, char **argv)$/;"	f
+main	test_signal.c	/^main (int argc, char **argv)$/;"	f
 main	test_time.c	/^int main(int argv ,char* agrs[])$/;"	f
 min_heap	min_heap.h	/^typedef struct min_heap$/;"	s
 min_heap_ctor	min_heap.h	/^void min_heap_ctor(min_heap_t* s) { s->p = 0; s->n = 0; s->a = 0; }$/;"	f
@@ -266,11 +272,15 @@ nfds	epoll.c	/^    int nfds;$/;"	m	struct:epollop	file:
 p	min_heap.h	/^	struct event** p;$/;"	m	struct:min_heap	typeref:struct:min_heap::event
 profhz	sys/_libevent_time.h	/^	int	profhz;		\/* profiling clock frequency *\/$/;"	m	struct:clockinfo
 rand_int	test_time.c	/^rand_int(int n)$/;"	f	file:
+read_cb	test_event.c	/^read_cb(int fd, short event, void *arg)$/;"	f	file:
+read_cb	test_main.c	/^read_cb(int fd, short event, void *arg)$/;"	f	file:
 sh_old	evsignal.h	/^    struct sigaction **sh_old;$/;"	m	struct:evsignal_info	typeref:struct:evsignal_info::sigaction
 sh_old_max	evsignal.h	/^    int sh_old_max;$/;"	m	struct:evsignal_info
 sig	event-internal.h	/^    struct evsignal_info sig;$/;"	m	struct:event_base	typeref:struct:event_base::evsignal_info
-signal_cb	test_main.c	/^signal_cb(int fd, short event, void *arg)$/;"	f	file:
+signal_cb	test_signal.c	/^signal_cb(int fd, short event, void *arg)$/;"	f	file:
 stathz	sys/_libevent_time.h	/^	int	stathz;		\/* statistics clock frequency *\/$/;"	m	struct:clockinfo
+test_okay	test_event.c	/^int test_okay = 1;$/;"	v
+test_okay	test_main.c	/^int test_okay = 1;$/;"	v
 tick	sys/_libevent_time.h	/^	int	tick;		\/* micro-seconds per hz tick *\/$/;"	m	struct:clockinfo
 tickadj	sys/_libevent_time.h	/^	int	tickadj;	\/* clock skew rate for adjtime() *\/$/;"	m	struct:clockinfo
 time_cb	test_time.c	/^time_cb(int fd, short event, void *arg)$/;"	f	file:
