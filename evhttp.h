@@ -28,9 +28,17 @@ struct evhttp *evhttp_new(struct event_base *base);
 
 
 int evhttp_bind_socket(struct evhttp *http, const char *address, u_short port);
+struct evhttp_connection *evhttp_connection_new(
+		const char *address, unsigned short port);
 
+void evhttp_connection_set_base(struct evhttp_connection *evcon,
+		struct event_base *base);
+/** Sets the timeout for events related to this connection */
+void evhttp_connection_set_timeout(struct evhttp_connection *evcon,
+		int timeout_in_secs);
 
-
+/** Frees an http connection */
+void evhttp_connection_free(struct evhttp_connection *evcon);
 
 
 

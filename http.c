@@ -28,6 +28,9 @@ int evhttp_accept_socket(struct evhttp *http, int fd);
 int event_base_set(struct event_base *base, struct event *ev);
 static struct addrinfo *make_addrinfo(const char *address, u_short port);
 static void accept_socket(int fd, short what, void *arg);
+static void name_from_addr(struct sockaddr *, socklen_t, char **, char **);
+static int evhttp_associate_new_request_with_connection(
+		struct evhttp_connection *evcon);
 
 
 int
@@ -43,6 +46,44 @@ event_base_set(struct event_base *base, struct event *ev)
 
     return (0);
 }
+
+static struct evhttp_connection*
+evhttp_get_request_connection(
+		struct evhttp* http,
+		int fd, struct sockaddr *sa, socklen_t salen)
+{
+	struct evhttp_connection *evcon;
+	char *hostname = NULL, *portname = NULL;
+
+	name_from_addr(sa, salen, &hostname, &portname);
+	if (hostname == NULL || portname == NULL) {
+		if (hostname) free(hostname);
+		if (portname) free(portname);
+		return (NULL);
+	}
+
+	event_debug(("%s: new request from %s:%s on %d\n",
+				__func__, hostname, portname, fd));
+
+	/* we need a connection object to put the http request on */
+	evcon = evhttp_connection_new(hostname, atoi(portname));
+	free(hostname);
+	free(portname);
+	if (evcon == NULL)
+		return (NULL);
+
+	/* associate the base if we have one*/
+	evhttp_connection_set_base(evcon, http->base);
+
+	evcon->flags |= EVHTTP_CON_INCOMING;
+	evcon->state = EVCON_READING_FIRSTLINE;
+
+	evcon->fd = fd;
+
+	return (evcon);
+}
+
+
 
 
 static struct evhttp*
@@ -260,6 +301,158 @@ evhttp_get_request(struct evhttp *http, int fd,
 }
 
 
+static void
+name_from_addr(struct sockaddr *sa, socklen_t salen,
+		char **phost, char **pport)
+{
+	char ntop[NI_MAXHOST];
+	char strport[NI_MAXSERV];
+	int ni_result;
+	ni_result = getnameinfo(sa, salen,
+			ntop, sizeof(ntop), strport, sizeof(strport),
+			NI_NUMERICHOST|NI_NUMERICSERV);
+
+	if (ni_result != 0) {
+		if (ni_result == EAI_SYSTEM)
+			event_err(1, "getnameinfo failed");
+		else
+			event_errx(1, "getnameinfo failed: %s", gai_strerror(ni_result));
+		return;
+	}
+	*phost = strdup(ntop);
+	*pport = strdup(strport);
+}
+
+struct evhttp_connection *
+evhttp_connection_new(const char *address, unsigned short port)
+{
+	struct evhttp_connection *evcon = NULL;
+
+	event_debug(("Attempting connection to %s:%d\n", address, port));
+
+	if ((evcon = calloc(1, sizeof(struct evhttp_connection))) == NULL) {
+		event_warn("%s: calloc failed", __func__);
+		goto error;
+	}
+
+	evcon->fd = -1;
+	evcon->port = port;
+
+	evcon->timeout = -1;
+	evcon->retry_cnt = evcon->retry_max = 0;
+
+	if ((evcon->address = strdup(address)) == NULL) {
+		event_warn("%s: strdup failed", __func__);
+		goto error;
+	}
+
+	if ((evcon->input_buffer = evbuffer_new()) == NULL) {
+		event_warn("%s: evbuffer_new failed", __func__);
+		goto error;
+	}
+
+	if ((evcon->output_buffer = evbuffer_new()) == NULL) {
+		event_warn("%s: evbuffer_new failed", __func__);
+		goto error;
+	}
+
+	evcon->state = EVCON_DISCONNECTED;
+	TAILQ_INIT(&evcon->requests);
+
+	return (evcon);
+
+error:
+	if (evcon != NULL)
+		evhttp_connection_free(evcon);
+	return (NULL);
+}
+
+
+void evhttp_connection_set_base(struct evhttp_connection *evcon,
+		struct event_base *base)
+{
+	assert(evcon->base == NULL);
+	assert(evcon->state == EVCON_DISCONNECTED);
+	evcon->base = base;
+}
+
+
+void
+evhttp_connection_set_timeout(struct evhttp_connection *evcon,
+		int timeout_in_secs)
+{
+	evcon->timeout = timeout_in_secs;
+}
+
+static int
+evhttp_associate_new_request_with_connection(struct evhttp_connection *evcon)
+{
+	struct evhttp *http = evcon->http_server;
+	struct evhttp_request *req;
+	if ((req = evhttp_request_new(evhttp_handle_request, http)) == NULL)
+		return (-1);
+
+	req->evcon = evcon;	/* the request ends up owning the connection */
+	req->flags |= EVHTTP_REQ_OWN_CONNECTION;
+
+	TAILQ_INSERT_TAIL(&evcon->requests, req, next);
+
+	req->kind = EVHTTP_REQUEST;
+
+	if ((req->remote_host = strdup(evcon->address)) == NULL)
+		event_err(1, "%s: strdup", __func__);
+	req->remote_port = evcon->port;
+
+	evhttp_start_read(evcon);
+
+	return (0);
+}
+
+void
+evhttp_connection_free(struct evhttp_connection *evcon)
+{
+	struct evhttp_request *req;
+
+	/* notify interested parties that this connection is going down */
+	if (evcon->fd != -1) {
+		if (evhttp_connected(evcon) && evcon->closecb != NULL)
+			(*evcon->closecb)(evcon, evcon->closecb_arg);
+	}
+
+	/* remove all requests that might be queued on this connection */
+	while ((req = TAILQ_FIRST(&evcon->requests)) != NULL) {
+		TAILQ_REMOVE(&evcon->requests, req, next);
+		evhttp_request_free(req);
+	}
+
+	if (evcon->http_server != NULL) {
+		struct evhttp *http = evcon->http_server;
+		TAILQ_REMOVE(&http->connections, evcon, next);
+	}
+
+	if (event_initialized(&evcon->close_ev))
+		event_del(&evcon->close_ev);
+
+	if (event_initialized(&evcon->ev))
+		event_del(&evcon->ev);
+
+	if (evcon->fd != -1)
+		EVUTIL_CLOSESOCKET(evcon->fd);
+
+	if (evcon->bind_address != NULL)
+		free(evcon->bind_address);
+
+	if (evcon->address != NULL)
+		free(evcon->address);
+
+	if (evcon->input_buffer != NULL)
+		evbuffer_free(evcon->input_buffer);
+
+	if (evcon->output_buffer != NULL)
+		evbuffer_free(evcon->output_buffer);
+
+	free(evcon);
+}
 
 
 
