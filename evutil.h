@@ -1,7 +1,7 @@
 #ifndef _EVUTIL_H_
 #define _EVUTIL_H_
 
-
+#include <errno.h>
 
 extern const char *evutil_getenv(const char *varname);
 
@@ -9,7 +9,7 @@ int evutil_socketpair(int d, int type, int protocol, int sv[2]);
 
 int evutil_make_socket_nonblocking(int sock);
 
-
+int evutil_snprintf(char *buf, size_t buflen, const char *format, ...);
 
 /*
  *  * Manipulation functions for struct timeval
@@ -51,6 +51,10 @@ int evutil_make_socket_nonblocking(int sock);
 	 ((tvp)->tv_usec cmp (uvp)->tv_usec) :						\
 	 ((tvp)->tv_sec cmp (uvp)->tv_sec))
 
+
+#define EVUTIL_SOCKET_ERROR() (errno)
+#define EVUTIL_SET_SOCKET_ERROR(errcode)        \
+    do { errno = (errcode); } while (0)
 
 
 

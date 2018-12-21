@@ -1,5 +1,5 @@
-test_main.out : epoll.o event.o evutil.o log.o signal.o test_main.o
-	gcc -g epoll.o event.o evutil.o log.o signal.o test_main.o -o test_main.out
+test_http.out : epoll.o event.o evutil.o log.o signal.o http.o  test_http.o
+	gcc -g epoll.o event.o evutil.o log.o signal.o http.o  test_http.o -o test_http.out
 epoll.o : epoll.c
 	gcc -c -g epoll.c -o epoll.o
 
@@ -15,8 +15,12 @@ log.o : log.c
 signal.o : signal.c evsignal.h
 	gcc -c -g signal.c -o signal.o
 
-test_main.o : test_main.c
-	gcc -c -g test_main.c -o test_main.o
+http.o : http.c
+	gcc -c -g http.c -o http.o
+
+
+test_http.o : test_http.c
+	gcc -c -g test_http.c -o test_http.o
 clean:
 	rm -rf *.o
-	rm -rf test_main.out
+	rm -rf test_http.out

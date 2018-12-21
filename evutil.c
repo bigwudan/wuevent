@@ -30,3 +30,13 @@ evutil_make_socket_nonblocking(int fd)
     }   
     return 0;
 }
+
+int
+evutil_snprintf(char *buf, size_t buflen, const char *format, ...)
+{
+    return 0;
+}
+
+
+
+

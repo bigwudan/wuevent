@@ -102,6 +102,46 @@ int event_base_loop(struct event_base *, int);
 /*@}*/
 
 
+struct bufferevent;
+typedef void (*evbuffercb)(struct bufferevent *, void *);
+typedef void (*everrorcb)(struct bufferevent *, short what, void *);
+
+
+struct event_watermark {
+    size_t low;
+    size_t high;
+};
+
+
+#ifndef EVENT_NO_STRUCT
+struct bufferevent {
+    struct event_base *ev_base;
+
+    struct event ev_read;
+    struct event ev_write;
+
+    struct evbuffer *input;
+    struct evbuffer *output;
+
+    struct event_watermark wm_read;
+    struct event_watermark wm_write;
+
+    evbuffercb readcb;
+    evbuffercb writecb;
+    everrorcb errorcb;
+    void *cbarg;
+
+    int timeout_read;   /* in seconds */
+    int timeout_write;  /* in seconds */
+
+    short enabled;  /* events that are currently enabled */
+};
+#endif
+
+
+
+
+
 
 
 #endif /* _EVENT_H_ */

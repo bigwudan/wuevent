@@ -6,6 +6,7 @@ extern void event_err(int eval, const char *fmt, ...);
 
 extern void event_errx(int eval, const char *fmt, ...);
 
+void event_warnx(const char *fmt, ...);
 
 extern void event_msgx(const char *fmt, ...);
 extern void event_warn(const char *fmt, ...);

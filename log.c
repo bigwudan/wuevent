@@ -37,3 +37,12 @@ event_warn(const char *fmt, ...)
     printf("warn \n");
 
 }
+
+
+
+void
+event_warnx(const char *fmt, ...)
+{
+    printf("event_warnx \n");
+}
+
