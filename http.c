@@ -34,16 +34,64 @@ static int evhttp_associate_new_request_with_connection(
 		struct evhttp_connection *evcon);
 
 
+static void
+evhttp_handle_request(struct evhttp_request *req, void *arg)
+{
+	struct evhttp *http = arg;
+	struct evhttp_cb *cb = NULL;
+
+	if (req->uri == NULL) {
+		evhttp_send_error(req, HTTP_BADREQUEST, "Bad Request");
+		return;
+	}
+
+	if ((cb = evhttp_dispatch_callback(&http->callbacks, req)) != NULL) {
+		(*cb->cb)(req, cb->cbarg);
+		return;
+	}
+
+	/* Generic call back */
+	if (http->gencb) {
+		(*http->gencb)(req, http->gencbarg);
+		return;
+	} else {
+		/* We need to send a 404 here */
+#define ERR_FORMAT "<html><head>" \
+		"<title>404 Not Found</title>" \
+		"</head><body>" \
+		"<h1>Not Found</h1>" \
+		"<p>The requested URL %s was not found on this server.</p>"\
+		"</body></html>\n"
+
+		char *escaped_html = evhttp_htmlescape(req->uri);
+		struct evbuffer *buf = evbuffer_new();
+
+		evhttp_response_code(req, HTTP_NOTFOUND, "Not Found");
+
+		evbuffer_add_printf(buf, ERR_FORMAT, escaped_html);
+
+		free(escaped_html);
+
+		evhttp_send_page(req, buf);
+
+		evbuffer_free(buf);
+#undef ERR_FORMAT
+	}
+}
+
+
+
+
+
 int
 event_base_set(struct event_base *base, struct event *ev)
 {
-    base->nactivequeues;
     /* Only innocent events may be assigned to a different base */
-/*    if (ev->ev_flags != EVLIST_INIT)
+    if (ev->ev_flags != EVLIST_INIT)
         return (-1);
 
     ev->ev_base = base;
-    ev->ev_pri = base->nactivequeues/2;*/
+    ev->ev_pri = base->nactivequeues/2;
 
     return (0);
 }
@@ -457,5 +505,57 @@ evhttp_connection_free(struct evhttp_connection *evcon)
 
 
 
+
+
+/*
+ *  * Request related functions
+ *   */
+
+struct evhttp_request *
+evhttp_request_new(void (*cb)(struct evhttp_request *, void *), void *arg)
+{
+	struct evhttp_request *req = NULL;
+
+	/* Allocate request structure */
+	if ((req = calloc(1, sizeof(struct evhttp_request))) == NULL) {
+		event_warn("%s: calloc", __func__);
+		goto error;
+	}
+
+	req->kind = EVHTTP_RESPONSE;
+	req->input_headers = calloc(1, sizeof(struct evkeyvalq));
+	if (req->input_headers == NULL) {
+		event_warn("%s: calloc", __func__);
+		goto error;
+	}
+	TAILQ_INIT(req->input_headers);
+
+	req->output_headers = calloc(1, sizeof(struct evkeyvalq));
+	if (req->output_headers == NULL) {
+		event_warn("%s: calloc", __func__);
+		goto error;
+	}
+	TAILQ_INIT(req->output_headers);
+
+	if ((req->input_buffer = evbuffer_new()) == NULL) {
+		event_warn("%s: evbuffer_new", __func__);
+		goto error;
+	}
+
+	if ((req->output_buffer = evbuffer_new()) == NULL) {
+		event_warn("%s: evbuffer_new", __func__);
+		goto error;
+	}
+
+	req->cb = cb;
+	req->cb_arg = arg;
+
+	return (req);
+
+error:
+	if (req != NULL)
+		evhttp_request_free(req);
+	return (NULL);
+}
 
 

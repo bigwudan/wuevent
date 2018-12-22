@@ -32,6 +32,13 @@ DST_MET	sys/_libevent_time.h	74;"	d
 DST_NONE	sys/_libevent_time.h	70;"	d
 DST_USA	sys/_libevent_time.h	71;"	d
 DST_WET	sys/_libevent_time.h	73;"	d
+ERR_FORMAT	http.c	59;"	d	file:
+ERR_FORMAT	http.c	78;"	d	file:
+EVBUFFER_DATA	event.h	161;"	d
+EVBUFFER_INPUT	event.h	162;"	d
+EVBUFFER_LENGTH	event.h	160;"	d
+EVBUFFER_MAX_READ	buffer.c	294;"	d	file:
+EVBUFFER_OUTPUT	event.h	163;"	d
 EVCON_CONNECTING	http-internal.h	/^    EVCON_CONNECTING,   \/**< tries to currently connect *\/$/;"	e	enum:evhttp_connection_state
 EVCON_DISCONNECTED	http-internal.h	/^    EVCON_DISCONNECTED, \/**< not currently connected not trying either*\/$/;"	e	enum:evhttp_connection_state
 EVCON_IDLE	http-internal.h	/^    EVCON_IDLE,     \/**< connection is established *\/$/;"	e	enum:evhttp_connection_state
@@ -42,6 +49,7 @@ EVCON_READING_TRAILER	http-internal.h	/^    EVCON_READING_TRAILER,  \/**< readin
 EVCON_WRITING	http-internal.h	/^    EVCON_WRITING       \/**< writing request\/response headers\/body *\/$/;"	e	enum:evhttp_connection_state
 EVENT_FD	event.h	79;"	d
 EVENT_SIGNAL	event.h	78;"	d
+EVHTTP_BASE_SET	http.c	20;"	d	file:
 EVHTTP_CON_CLOSEDETECT	http-internal.h	36;"	d
 EVHTTP_CON_INCOMING	http-internal.h	34;"	d
 EVHTTP_CON_OUTGOING	http-internal.h	35;"	d
@@ -54,7 +62,9 @@ EVLIST_SIGNAL	event.h	19;"	d
 EVLIST_TIMEOUT	event.h	17;"	d
 EVLOOP_NONBLOCK	event.h	101;"	d
 EVLOOP_ONCE	event.h	100;"	d
-EVUTIL_CLOSESOCKET	evutil.h	47;"	d
+EVUTIL_CLOSESOCKET	evutil.h	48;"	d
+EVUTIL_SET_SOCKET_ERROR	evutil.h	57;"	d
+EVUTIL_SOCKET_ERROR	evutil.h	56;"	d
 EV_PERSIST	event.h	33;"	d
 EV_READ	event.h	30;"	d
 EV_SIGNAL	event.h	32;"	d
@@ -120,6 +130,7 @@ SLIST_INSERT_AFTER	sys/queue.h	123;"	d
 SLIST_INSERT_HEAD	sys/queue.h	128;"	d
 SLIST_NEXT	sys/queue.h	109;"	d
 SLIST_REMOVE_HEAD	sys/queue.h	133;"	d
+SWAP	buffer.c	38;"	d	file:
 TAILQ_EMPTY	sys/queue.h	301;"	d
 TAILQ_END	sys/queue.h	294;"	d
 TAILQ_ENTRY	event.h	10;"	d
@@ -156,6 +167,7 @@ _SYS_TIME_H_	sys/_libevent_time.h	36;"	d
 _evsignal_restore_handler	signal.c	/^_evsignal_restore_handler(struct event_base *base, int evsignal)$/;"	f
 _evsignal_set_handler	signal.c	/^_evsignal_set_handler(struct event_base *base,$/;"	f
 a	min_heap.h	/^	unsigned n, a;$/;"	m	struct:min_heap
+accept_socket	http.c	/^accept_socket(int fd, short what, void *arg)$/;"	f	file:
 activequeues	event-internal.h	/^    struct event_list **activequeues;$/;"	m	struct:event_base	typeref:struct:event_base::event_list
 add	event-internal.h	/^    int (*add)(void *, struct event *);$/;"	m	struct:eventop
 address	http-internal.h	/^    char *address;          \/* address to connect to *\/$/;"	m	struct:evhttp_connection
@@ -167,6 +179,7 @@ bind_ev	http-internal.h	/^    struct event  bind_ev;$/;"	m	struct:evhttp_bound_s
 bind_port	http-internal.h	/^    u_short bind_port;      \/* local port for binding the src *\/$/;"	m	struct:evhttp_connection
 bind_socket	http.c	/^bind_socket(const char *address, u_short port, int reuse)$/;"	f	file:
 bind_socket_ai	http.c	/^bind_socket_ai(struct addrinfo *ai, int reuse)$/;"	f	file:
+buffer	event.h	/^	u_char *buffer;$/;"	m	struct:evbuffer
 bufferevent	event.h	/^struct bufferevent {$/;"	s
 callbacks	http-internal.h	/^    TAILQ_HEAD(httpcbq, evhttp_cb) callbacks;$/;"	m	struct:evhttp
 called	test_event.c	/^int called = 0;$/;"	v
@@ -174,9 +187,11 @@ called	test_http.c	/^int called = 0;$/;"	v
 called	test_main.c	/^int called = 0;$/;"	v
 called	test_signal.c	/^int called = 0;$/;"	v
 called	test_time.c	/^int called = 0;$/;"	v
+cb	event.h	/^	void (*cb)(struct evbuffer *, size_t, size_t, void *);$/;"	m	struct:evbuffer
 cb	http-internal.h	/^    void (*cb)(struct evhttp_connection *, void *);$/;"	m	struct:evhttp_connection
 cb	http-internal.h	/^    void (*cb)(struct evhttp_request *req, void *);$/;"	m	struct:evhttp_cb
 cb_arg	http-internal.h	/^    void *cb_arg;$/;"	m	struct:evhttp_connection
+cbarg	event.h	/^	void *cbarg;$/;"	m	struct:evbuffer
 cbarg	event.h	/^    void *cbarg;$/;"	m	struct:bufferevent
 cbarg	http-internal.h	/^    void *cbarg;$/;"	m	struct:evhttp_cb
 clockinfo	sys/_libevent_time.h	/^struct clockinfo {$/;"	s
@@ -223,6 +238,22 @@ ev_signal_pair	evsignal.h	/^    int ev_signal_pair[2];$/;"	m	struct:evsignal_inf
 ev_timeout	event.h	/^    struct timeval ev_timeout;$/;"	m	struct:event	typeref:struct:event::timeval
 ev_write	event.h	/^    struct event ev_write;$/;"	m	struct:bufferevent	typeref:struct:bufferevent::event
 evbase	event-internal.h	/^    void *evbase;$/;"	m	struct:event_base
+evbuffer	event.h	/^struct evbuffer {$/;"	s
+evbuffer_add	buffer.c	/^evbuffer_add(struct evbuffer *buf, const void *data, size_t datlen)$/;"	f
+evbuffer_add_buffer	buffer.c	/^evbuffer_add_buffer(struct evbuffer *outbuf, struct evbuffer *inbuf)$/;"	f
+evbuffer_add_printf	buffer.c	/^evbuffer_add_printf(struct evbuffer *buf, const char *fmt, ...)$/;"	f
+evbuffer_add_vprintf	buffer.c	/^evbuffer_add_vprintf(struct evbuffer *buf, const char *fmt, va_list ap)$/;"	f
+evbuffer_align	buffer.c	/^evbuffer_align(struct evbuffer *buf)$/;"	f	file:
+evbuffer_drain	buffer.c	/^evbuffer_drain(struct evbuffer *buf, size_t len)$/;"	f
+evbuffer_expand	buffer.c	/^evbuffer_expand(struct evbuffer *buf, size_t datlen)$/;"	f
+evbuffer_find	buffer.c	/^evbuffer_find(struct evbuffer *buffer, const u_char *what, size_t len)$/;"	f
+evbuffer_free	buffer.c	/^evbuffer_free(struct evbuffer *buffer)$/;"	f
+evbuffer_new	buffer.c	/^evbuffer_new(void)$/;"	f
+evbuffer_read	buffer.c	/^evbuffer_read(struct evbuffer *buf, int fd, int howmuch)$/;"	f
+evbuffer_readline	buffer.c	/^evbuffer_readline(struct evbuffer *buffer)$/;"	f
+evbuffer_remove	buffer.c	/^evbuffer_remove(struct evbuffer *buf, void *data, size_t datlen)$/;"	f
+evbuffer_setcb	buffer.c	/^void evbuffer_setcb(struct evbuffer *buffer,$/;"	f
+evbuffer_write	buffer.c	/^evbuffer_write(struct evbuffer *buffer, int fd)$/;"	f
 evbuffercb	event.h	/^typedef void (*evbuffercb)(struct bufferevent *, void *);$/;"	t
 event	event.h	/^struct event {$/;"	s
 event_active	event.c	/^event_active(struct event *ev, int res, short ncalls)$/;"	f
@@ -231,11 +262,12 @@ event_base	event-internal.h	/^struct event_base {$/;"	s
 event_base_loop	event.c	/^event_base_loop(struct event_base *base, int flags)$/;"	f
 event_base_new	event.c	/^event_base_new(void)$/;"	f
 event_base_priority_init	event.c	/^event_base_priority_init(struct event_base *base, int npriorities)$/;"	f
+event_base_set	http.c	/^event_base_set(struct event_base *base, struct event *ev)$/;"	f
 event_break	event-internal.h	/^    int event_break;        \/* Set to terminate loop immediately *\/$/;"	m	struct:event_base
 event_count	event-internal.h	/^    int event_count;        \/* counts number of total events *\/$/;"	m	struct:event_base
 event_count_active	event-internal.h	/^    int event_count_active; \/* counts number of active events *\/$/;"	m	struct:event_base
-event_debug	log.h	13;"	d
-event_debug	log.h	15;"	d
+event_debug	log.h	14;"	d
+event_debug	log.h	16;"	d
 event_del	event.c	/^event_del(struct event *ev)$/;"	f
 event_dispatch	event.c	/^event_dispatch(void)$/;"	f
 event_err	log.c	/^event_err(int eval, const char *fmt, ...)$/;"	f
@@ -251,6 +283,7 @@ event_queue_remove	event.c	/^event_queue_remove(struct event_base *base, struct 
 event_set	event.c	/^event_set(struct event *ev, int fd, short events,$/;"	f
 event_tv	event-internal.h	/^    struct timeval event_tv;$/;"	m	struct:event_base	typeref:struct:event_base::timeval
 event_warn	log.c	/^event_warn(const char *fmt, ...)$/;"	f
+event_warnx	log.c	/^event_warnx(const char *fmt, ...)$/;"	f
 event_watermark	event.h	/^struct event_watermark {$/;"	s
 eventop	event-internal.h	/^struct eventop {$/;"	s
 eventops	event.c	/^static const struct eventop *eventops[] = {$/;"	v	typeref:struct:eventop	file:
@@ -260,13 +293,23 @@ evepoll	epoll.c	/^struct evepoll {$/;"	s	file:
 everrorcb	event.h	/^typedef void (*everrorcb)(struct bufferevent *, short what, void *);$/;"	t
 evhttp	http-internal.h	/^struct evhttp {$/;"	s
 evhttp_accept_socket	http.c	/^evhttp_accept_socket(struct evhttp *http, int fd)$/;"	f
+evhttp_associate_new_request_with_connection	http.c	/^evhttp_associate_new_request_with_connection(struct evhttp_connection *evcon)$/;"	f	file:
 evhttp_bind_socket	http.c	/^evhttp_bind_socket(struct evhttp *http, const char *address, u_short port)$/;"	f
 evhttp_bound_socket	http-internal.h	/^struct evhttp_bound_socket {$/;"	s
 evhttp_cb	http-internal.h	/^struct evhttp_cb {$/;"	s
 evhttp_connection	http-internal.h	/^struct evhttp_connection {$/;"	s
+evhttp_connection_free	http.c	/^evhttp_connection_free(struct evhttp_connection *evcon)$/;"	f
+evhttp_connection_new	http.c	/^evhttp_connection_new(const char *address, unsigned short port)$/;"	f
+evhttp_connection_set_base	http.c	/^void evhttp_connection_set_base(struct evhttp_connection *evcon,$/;"	f
+evhttp_connection_set_timeout	http.c	/^evhttp_connection_set_timeout(struct evhttp_connection *evcon,$/;"	f
 evhttp_connection_state	http-internal.h	/^enum evhttp_connection_state {$/;"	g
+evhttp_get_request	http.c	/^evhttp_get_request(struct evhttp *http, int fd,$/;"	f
+evhttp_get_request_connection	http.c	/^evhttp_get_request_connection($/;"	f	file:
+evhttp_handle_request	http.c	/^evhttp_handle_request(struct evhttp_request *req, void *arg)$/;"	f	file:
 evhttp_new	http.c	/^evhttp_new(struct event_base *base)$/;"	f
 evhttp_new_object	http.c	/^evhttp_new_object(void)$/;"	f	file:
+evhttp_request	evhttp.h	/^struct evhttp_request {$/;"	s
+evhttp_request_new	http.c	/^evhttp_request_new(void (*cb)(struct evhttp_request *, void *), void *arg)$/;"	f
 evread	epoll.c	/^    struct event *evread;$/;"	m	struct:evepoll	typeref:struct:evepoll::event	file:
 evsel	event-internal.h	/^    const struct eventop *evsel;$/;"	m	struct:event_base	typeref:struct:event_base::eventop
 evsigcaught	evsignal.h	/^    sig_atomic_t evsigcaught[NSIG];$/;"	m	struct:evsignal_info
@@ -286,14 +329,16 @@ evtimer_del	event.h	74;"	d
 evtimer_set	event.h	76;"	d
 evutil_getenv	evutil.c	/^evutil_getenv(const char *varname)$/;"	f
 evutil_make_socket_nonblocking	evutil.c	/^evutil_make_socket_nonblocking(int fd)$/;"	f
+evutil_snprintf	evutil.c	/^evutil_snprintf(char *buf, size_t buflen, const char *format, ...)$/;"	f
 evutil_socketpair	evutil.c	/^evutil_socketpair(int family, int type, int protocol, int fd[2])$/;"	f
-evutil_timeradd	evutil.h	18;"	d
-evutil_timeradd	evutil.h	21;"	d
-evutil_timerclear	evutil.h	42;"	d
-evutil_timerclear	evutil.h	44;"	d
-evutil_timercmp	evutil.h	49;"	d
-evutil_timersub	evutil.h	19;"	d
-evutil_timersub	evutil.h	30;"	d
+evutil_timeradd	evutil.h	19;"	d
+evutil_timeradd	evutil.h	22;"	d
+evutil_timerclear	evutil.h	43;"	d
+evutil_timerclear	evutil.h	45;"	d
+evutil_timercmp	evutil.h	50;"	d
+evutil_timersub	evutil.h	20;"	d
+evutil_timersub	evutil.h	31;"	d
+evutil_vsnprintf	evutil.c	/^evutil_vsnprintf(char *buf, size_t buflen, const char *format, va_list ap)$/;"	f
 evwrite	epoll.c	/^    struct event *evwrite;$/;"	m	struct:evepoll	typeref:struct:evepoll::event	file:
 fd	http-internal.h	/^    int fd;$/;"	m	struct:evhttp_connection
 fds	epoll.c	/^    struct evepoll *fds;$/;"	m	struct:epollop	typeref:struct:epollop::evepoll	file:
@@ -336,13 +381,18 @@ min_heap_shift_up_	min_heap.h	/^void min_heap_shift_up_(min_heap_t* s, unsigned 
 min_heap_size	min_heap.h	/^unsigned min_heap_size(min_heap_t* s) { return s->n; }$/;"	f
 min_heap_t	min_heap.h	/^} min_heap_t;$/;"	t	typeref:struct:min_heap
 min_heap_top	min_heap.h	/^struct event* min_heap_top(min_heap_t* s) { return s->n ? *s->p : 0; }$/;"	f
+misalign	event.h	/^	size_t misalign;$/;"	m	struct:evbuffer
 n	min_heap.h	/^	unsigned n, a;$/;"	m	struct:min_heap
 nactivequeues	event-internal.h	/^    int nactivequeues;$/;"	m	struct:event_base
 name	event-internal.h	/^    const char *name;$/;"	m	struct:eventop
+name_from_addr	http.c	/^name_from_addr(struct sockaddr *sa, socklen_t salen,$/;"	f	file:
 need_reinit	event-internal.h	/^    int need_reinit;$/;"	m	struct:eventop
 nevents	epoll.c	/^    int nevents;$/;"	m	struct:epollop	file:
+next	evhttp.h	/^		}       next;$/;"	m	struct:evhttp_request	typeref:struct:evhttp_request::__anon1
 next	http-internal.h	/^    TAILQ_ENTRY(evhttp_cb) next;$/;"	m	struct:evhttp_cb
 nfds	epoll.c	/^    int nfds;$/;"	m	struct:epollop	file:
+off	event.h	/^	size_t off;$/;"	m	struct:evbuffer
+orig_buffer	event.h	/^	u_char *orig_buffer;$/;"	m	struct:evbuffer
 output	event.h	/^    struct evbuffer *output;$/;"	m	struct:bufferevent	typeref:struct:bufferevent::evbuffer
 output_buffer	http-internal.h	/^    struct evbuffer *output_buffer;$/;"	m	struct:evhttp_connection	typeref:struct:evhttp_connection::evbuffer
 p	min_heap.h	/^	struct event** p;$/;"	m	struct:min_heap	typeref:struct:min_heap::event
@@ -390,6 +440,9 @@ timespecisset	sys/_libevent_time.h	106;"	d
 timespecsub	sys/_libevent_time.h	120;"	d
 timeval	sys/_libevent_time.h	/^struct timeval {$/;"	s
 timezone	sys/_libevent_time.h	/^struct timezone {$/;"	s
+totallen	event.h	/^	size_t totallen;$/;"	m	struct:evbuffer
+tqe_next	evhttp.h	/^				struct evhttp_request *tqe_next;$/;"	m	struct:evhttp_request::__anon1	typeref:struct:evhttp_request::__anon1::evhttp_request
+tqe_prev	evhttp.h	/^					struct evhttp_request **tqe_prev;$/;"	m	struct:evhttp_request::__anon1	typeref:struct:evhttp_request::__anon1::evhttp_request
 tv_cache	event-internal.h	/^    struct timeval tv_cache;$/;"	m	struct:event_base	typeref:struct:event_base::timeval
 tv_nsec	sys/_libevent_time.h	/^	long	tv_nsec;	\/* and nanoseconds *\/$/;"	m	struct:timespec
 tv_sec	sys/_libevent_time.h	/^	long	tv_sec;		\/* seconds *\/$/;"	m	struct:timeval
@@ -398,6 +451,7 @@ tv_usec	sys/_libevent_time.h	/^	long	tv_usec;	\/* and microseconds *\/$/;"	m	str
 tz_dsttime	sys/_libevent_time.h	/^	int	tz_dsttime;	\/* type of dst correction *\/$/;"	m	struct:timezone
 tz_minuteswest	sys/_libevent_time.h	/^	int	tz_minuteswest;	\/* minutes west of Greenwich *\/$/;"	m	struct:timezone
 use_monotonic	event.c	/^static int use_monotonic;$/;"	v	file:
+va_copy	buffer.c	101;"	d	file:
 what	http-internal.h	/^    char *what;$/;"	m	struct:evhttp_cb
 wm_read	event.h	/^    struct event_watermark wm_read;$/;"	m	struct:bufferevent	typeref:struct:bufferevent::event_watermark
 wm_write	event.h	/^    struct event_watermark wm_write;$/;"	m	struct:bufferevent	typeref:struct:bufferevent::event_watermark
