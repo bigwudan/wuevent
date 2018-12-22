@@ -33,6 +33,149 @@ static void name_from_addr(struct sockaddr *, socklen_t, char **, char **);
 static int evhttp_associate_new_request_with_connection(
 		struct evhttp_connection *evcon);
 
+static void evhttp_connection_stop_detectclose(
+			struct evhttp_connection *evcon);
+
+static int evhttp_add_header_internal(struct evkeyvalq *headers,
+		const char *key, const char *value);
+
+
+
+int
+evhttp_remove_header(struct evkeyvalq *headers, const char *key)
+{
+	struct evkeyval *header;
+
+	TAILQ_FOREACH(header, headers, next) {
+		if (strcasecmp(header->key, key) == 0)
+			break;
+	}
+
+	if (header == NULL)
+		return (-1);
+
+	/* Free and remove the header that we found */
+	TAILQ_REMOVE(headers, header, next);
+	free(header->key);
+	free(header->value);
+	free(header);
+
+	return (0);
+}
+
+
+static const char *
+evhttp_method(enum evhttp_cmd_type type)
+{
+	const char *method;
+
+	switch (type) {
+		case EVHTTP_REQ_GET:
+			method = "GET";
+			break;
+		case EVHTTP_REQ_POST:
+			method = "POST";
+			break;
+		case EVHTTP_REQ_HEAD:
+			method = "HEAD";
+			break;
+		default:
+			method = NULL;
+			break;
+	}
+
+	return (method);
+}
+
+
+
+
+static int
+evhttp_is_connection_close(int flags, struct evkeyvalq* headers)
+{
+	if (flags & EVHTTP_PROXY_REQUEST) {
+		/* proxy connection */
+		const char *connection = evhttp_find_header(headers, "Proxy-Connection");
+		return (connection == NULL || strcasecmp(connection, "keep-alive") != 0);
+	} else {
+		const char *connection = evhttp_find_header(headers, "Connection");
+		return (connection != NULL && strcasecmp(connection, "close") == 0);
+	}
+}
+
+
+static int
+evhttp_is_connection_keepalive(struct evkeyvalq* headers)
+{
+	const char *connection = evhttp_find_header(headers, "Connection");
+	return (connection != NULL 
+			&& strncasecmp(connection, "keep-alive", 10) == 0);
+}
+
+
+static void
+evhttp_connection_stop_detectclose(struct evhttp_connection *evcon)
+{
+	evcon->flags &= ~EVHTTP_CON_CLOSEDETECT;
+	event_del(&evcon->close_ev);
+}
+
+
+static int
+evhttp_connected(struct evhttp_connection *evcon)
+{
+	switch (evcon->state) {
+		case EVCON_DISCONNECTED:
+		case EVCON_CONNECTING:
+			return (0);
+		case EVCON_IDLE:
+		case EVCON_READING_FIRSTLINE:
+		case EVCON_READING_HEADERS:
+		case EVCON_READING_BODY:
+		case EVCON_READING_TRAILER:
+		case EVCON_WRITING:
+		default:
+			return (1);
+	}
+}
+
+static void
+evhttp_make_header_request(struct evhttp_connection *evcon,
+		struct evhttp_request *req)
+{
+	const char *method;
+
+	evhttp_remove_header(req->output_headers, "Proxy-Connection");
+
+	/* Generate request line */
+	method = evhttp_method(req->type);
+	evbuffer_add_printf(evcon->output_buffer, "%s %s HTTP/%d.%d\r\n",
+			method, req->uri, req->major, req->minor);
+
+	/* Add the content length on a post request if missing */
+	if (req->type == EVHTTP_REQ_POST &&
+			evhttp_find_header(req->output_headers, "Content-Length") == NULL){
+		char size[12];
+		evutil_snprintf(size, sizeof(size), "%ld",
+				(long)EVBUFFER_LENGTH(req->output_buffer));
+		evhttp_add_header(req->output_headers, "Content-Length", size);
+	}
+}
+
+const char *
+evhttp_find_header(const struct evkeyvalq *headers, const char *key)
+{
+	struct evkeyval *header;
+
+	TAILQ_FOREACH(header, headers, next) {
+		if (strcasecmp(header->key, key) == 0)
+			return (header->value);
+	}
+
+	return (NULL);
+}
+
+
 static const char *
 html_replace(char ch, char *buf)
 {
@@ -122,7 +265,6 @@ evhttp_htmlescape(const char *html)
 
 	return (escaped_html);
 }
-
 
 
 
@@ -651,6 +793,31 @@ error:
 }
 
 
+void
+evhttp_request_free(struct evhttp_request *req)
+{
+	if (req->remote_host != NULL)
+		free(req->remote_host);
+	if (req->uri != NULL)
+		free(req->uri);
+	if (req->response_code_line != NULL)
+		free(req->response_code_line);
+
+	evhttp_clear_headers(req->input_headers);
+	free(req->input_headers);
+
+	evhttp_clear_headers(req->output_headers);
+	free(req->output_headers);
+
+	if (req->input_buffer != NULL)
+		evbuffer_free(req->input_buffer);
+
+	if (req->output_buffer != NULL)
+		evbuffer_free(req->output_buffer);
+
+	free(req);
+}
+
 
 /*
  *  * Returns an error page.
@@ -681,12 +848,298 @@ evhttp_send_error(struct evhttp_request *req, int error, const char *reason)
 #undef ERR_FORMAT
 }
 
+#define SWAP(x,y) do { \
+	(x)->buffer = (y)->buffer; \
+	(x)->orig_buffer = (y)->orig_buffer; \
+	(x)->misalign = (y)->misalign; \
+	(x)->totallen = (y)->totallen; \
+	(x)->off = (y)->off; \
+} while (0)
+
+
+int
+evbuffer_add_buffer(struct evbuffer *outbuf, struct evbuffer *inbuf)
+{
+	int res;
+
+	/* Short cut for better performance */
+	if (outbuf->off == 0) {
+		struct evbuffer tmp;
+		size_t oldoff = inbuf->off;
+
+		/* Swap them directly */
+		SWAP(&tmp, outbuf);
+		SWAP(outbuf, inbuf);
+		SWAP(inbuf, &tmp);
+
+		/* 
+		 *		 * Optimization comes with a price; we need to notify the
+		 *				 * buffer if necessary of the changes. oldoff is the amount
+		 *						 * of data that we transfered from inbuf to outbuf
+		 *								 */
+		if (inbuf->off != oldoff && inbuf->cb != NULL)
+			(*inbuf->cb)(inbuf, oldoff, inbuf->off, inbuf->cbarg);
+		if (oldoff && outbuf->cb != NULL)
+			(*outbuf->cb)(outbuf, 0, oldoff, outbuf->cbarg);
+
+		return (0);
+	}
+
+	res = evbuffer_add(outbuf, inbuf->buffer, inbuf->off);
+	if (res == 0) {
+		/* We drain the input buffer on success */
+		evbuffer_drain(inbuf, inbuf->off);
+	}
+
+	return (res);
+}
+
+static void
+evhttp_send_done(struct evhttp_connection *evcon, void *arg)
+{
+	int need_close;
+	struct evhttp_request *req = TAILQ_FIRST(&evcon->requests);
+	TAILQ_REMOVE(&evcon->requests, req, next);
+
+	/* delete possible close detection events */
+	evhttp_connection_stop_detectclose(evcon);
+
+	need_close =
+		(req->minor == 0 &&
+		 !evhttp_is_connection_keepalive(req->input_headers))||
+		evhttp_is_connection_close(req->flags, req->input_headers) ||
+		evhttp_is_connection_close(req->flags, req->output_headers);
+
+	assert(req->flags & EVHTTP_REQ_OWN_CONNECTION);
+	evhttp_request_free(req);
+
+	if (need_close) {
+		evhttp_connection_free(evcon);
+		return;
+	} 
+
+	/* we have a persistent connection; try to accept another request. */
+	if (evhttp_associate_new_request_with_connection(evcon) == -1)
+		evhttp_connection_free(evcon);
+}
 
 
 
+static inline void
+evhttp_send(struct evhttp_request *req, struct evbuffer *databuf)
+{
+	struct evhttp_connection *evcon = req->evcon;
+
+	assert(TAILQ_FIRST(&evcon->requests) == req);
+
+	/* xxx: not sure if we really should expose the data buffer this way */
+	if (databuf != NULL)
+		evbuffer_add_buffer(req->output_buffer, databuf);
+
+	/* Adds headers to the response */
+	evhttp_make_header(evcon, req);
+
+	evhttp_write_buffer(evcon, evhttp_send_done, NULL);
+}
+
+void
+evhttp_send_page(struct evhttp_request *req, struct evbuffer *databuf)
+{
+	if (!req->major || !req->minor) {
+		req->major = 1;
+		req->minor = 1;
+	}
+
+	if (req->kind != EVHTTP_RESPONSE)
+		evhttp_response_code(req, 200, "OK");
+
+	evhttp_clear_headers(req->output_headers);
+	evhttp_add_header(req->output_headers, "Content-Type", "text/html");
+	evhttp_add_header(req->output_headers, "Connection", "close");
+
+	evhttp_send(req, databuf);
+}
+
+
+void
+evhttp_clear_headers(struct evkeyvalq *headers)
+{
+	struct evkeyval *header;
+
+	for (header = TAILQ_FIRST(headers);
+			header != NULL;
+			header = TAILQ_FIRST(headers)) {
+		TAILQ_REMOVE(headers, header, next);
+		free(header->key);
+		free(header->value);
+		free(header);
+	}
+}
+
+
+static int
+evhttp_header_is_valid_value(const char *value)
+{
+	const char *p = value;
+
+	while ((p = strpbrk(p, "\r\n")) != NULL) {
+		/* we really expect only one new line */
+		p += strspn(p, "\r\n");
+		/* we expect a space or tab for continuation */
+		if (*p != ' ' && *p != '\t')
+			return (0);
+	}
+	return (1);
+}
+
+static int
+evhttp_add_header_internal(struct evkeyvalq *headers,
+		const char *key, const char *value)
+{
+	struct evkeyval *header = calloc(1, sizeof(struct evkeyval));
+	if (header == NULL) {
+		event_warn("%s: calloc", __func__);
+		return (-1);
+	}
+	if ((header->key = strdup(key)) == NULL) {
+		free(header);
+		event_warn("%s: strdup", __func__);
+		return (-1);
+	}
+	if ((header->value = strdup(value)) == NULL) {
+		free(header->key);
+		free(header);
+		event_warn("%s: strdup", __func__);
+		return (-1);
+	}
+
+	TAILQ_INSERT_TAIL(headers, header, next);
+
+	return (0);
+}
 
 
 
+int
+evhttp_add_header(struct evkeyvalq *headers,
+		    const char *key, const char *value)
+{
+	event_debug(("%s: key: %s val: %s\n", __func__, key, value));
+
+	if (strchr(key, '\r') != NULL || strchr(key, '\n') != NULL) {
+		/* drop illegal headers */
+		event_debug(("%s: dropping illegal header key\n", __func__));
+		return (-1);
+	}
+
+	if (!evhttp_header_is_valid_value(value)) {
+		event_debug(("%s: dropping illegal header value\n", __func__));
+		return (-1);
+	}
+
+	return (evhttp_add_header_internal(headers, key, value));
+}
+
+static void
+evhttp_make_header_response(struct evhttp_connection *evcon,
+		struct evhttp_request *req)
+{
+	int is_keepalive = evhttp_is_connection_keepalive(req->input_headers);
+	evbuffer_add_printf(evcon->output_buffer, "HTTP/%d.%d %d %s\r\n",
+			req->major, req->minor, req->response_code,
+			req->response_code_line);
+
+	if (req->major == 1) {
+		if (req->minor == 1)
+			evhttp_maybe_add_date_header(req->output_headers);
+
+		/*
+		 *		 * if the protocol is 1.0; and the connection was keep-alive
+		 *				 * we need to add a keep-alive header, too.
+		 *						 */
+		if (req->minor == 0 && is_keepalive)
+			evhttp_add_header(req->output_headers,
+					"Connection", "keep-alive");
+
+		if (req->minor == 1 || is_keepalive) {
+			/* 
+			 *			 * we need to add the content length if the
+			 *						 * user did not give it, this is required for
+			 *									 * persistent connections to work.
+			 *												 */
+			evhttp_maybe_add_content_length_header(
+					req->output_headers,
+					(long)EVBUFFER_LENGTH(req->output_buffer));
+		}
+	}
+
+	/* Potentially add headers for unidentified content. */
+	if (EVBUFFER_LENGTH(req->output_buffer)) {
+		if (evhttp_find_header(req->output_headers,
+					"Content-Type") == NULL) {
+			evhttp_add_header(req->output_headers,
+					"Content-Type", "text/html; charset=ISO-8859-1");
+		}
+	}
+
+	/* if the request asked for a close, we send a close, too */
+	if (evhttp_is_connection_close(req->flags, req->input_headers)) {
+		evhttp_remove_header(req->output_headers, "Connection");
+		if (!(req->flags & EVHTTP_PROXY_REQUEST))
+			evhttp_add_header(req->output_headers, "Connection", "close");
+		evhttp_remove_header(req->output_headers, "Proxy-Connection");
+	}
+}
+
+
+void
+evhttp_make_header(struct evhttp_connection *evcon, struct evhttp_request *req)
+{
+	struct evkeyval *header;
+
+	/*
+	 *	 * Depending if this is a HTTP request or response, we might need to
+	 *		 * add some new headers or remove existing headers.
+	 *			 */
+	if (req->kind == EVHTTP_REQUEST) {
+		evhttp_make_header_request(evcon, req);
+	} else {
+		evhttp_make_header_response(evcon, req);
+	}
+
+	TAILQ_FOREACH(header, req->output_headers, next) {
+		evbuffer_add_printf(evcon->output_buffer, "%s: %s\r\n",
+				header->key, header->value);
+	}
+	evbuffer_add(evcon->output_buffer, "\r\n", 2);
+
+	if (EVBUFFER_LENGTH(req->output_buffer) > 0) {
+		/*
+		 *		 * For a request, we add the POST data, for a reply, this
+		 *				 * is the regular data.
+		 *						 */
+		evbuffer_add_buffer(evcon->output_buffer, req->output_buffer);
+	}
+}
+
+void
+evhttp_write_buffer(struct evhttp_connection *evcon,
+		void (*cb)(struct evhttp_connection *, void *), void *arg)
+{
+	event_debug(("%s: preparing to write buffer\n", __func__));
+
+	/* Set call back */
+	evcon->cb = cb;
+	evcon->cb_arg = arg;
+
+	/* check if the event is already pending */
+	if (event_pending(&evcon->ev, EV_WRITE|EV_TIMEOUT, NULL))
+		event_del(&evcon->ev);
+
+	event_set(&evcon->ev, evcon->fd, EV_WRITE, evhttp_write, evcon);
+	EVHTTP_BASE_SET(evcon, &evcon->ev);
+	evhttp_add_event(&evcon->ev, evcon->timeout, HTTP_WRITE_TIMEOUT);
+}
 
 
 

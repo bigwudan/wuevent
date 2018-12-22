@@ -99,6 +99,15 @@ void evhttp_get_request(struct evhttp *, int, struct sockaddr *, socklen_t);
 
 void evhttp_response_code(struct evhttp_request *, int, const char *);
 
+void evhttp_send_page(struct evhttp_request *, struct evbuffer *);
+
+void evhttp_start_read(struct evhttp_connection *);
+
+void evhttp_make_header(struct evhttp_connection *, struct evhttp_request *);
+
+void evhttp_write_buffer(struct evhttp_connection *,
+		    void (*)(struct evhttp_connection *, void *), void *);
+
 
 
 

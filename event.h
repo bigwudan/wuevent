@@ -67,6 +67,13 @@ struct event {
 struct event;
 #endif
 
+struct evkeyval {
+	TAILQ_ENTRY(evkeyval) next;
+
+	char *key;
+	char *value;
+};
+
 TAILQ_HEAD (event_list, event);
 TAILQ_HEAD (evkeyvalq, evkeyval);
 
@@ -156,6 +163,16 @@ struct evbuffer *evbuffer_new(void);
 int evbuffer_add(struct evbuffer *, const void *, size_t);
 void evbuffer_drain(struct evbuffer *, size_t);
 int evbuffer_expand(struct evbuffer *buf, size_t datlen);
+
+
+int evbuffer_add_printf(struct evbuffer *buf, const char *fmt, ...);
+
+void evbuffer_free(struct evbuffer *);
+
+int evbuffer_add_buffer(struct evbuffer *, struct evbuffer *);
+
+
+#define event_initialized(ev)		((ev)->ev_flags & EVLIST_INIT)
 
 #define EVBUFFER_LENGTH(x)	(x)->off
 #define EVBUFFER_DATA(x)	(x)->buffer

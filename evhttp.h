@@ -109,6 +109,15 @@ void evhttp_send_error(struct evhttp_request *req, int error,
 
 char *evhttp_htmlescape(const char *html);
 
+void evhttp_request_free(struct evhttp_request *req);
 
+void evhttp_clear_headers(struct evkeyvalq *);
+
+const char *evhttp_find_header(const struct evkeyvalq *, const char *);
+
+int evhttp_add_header(struct evkeyvalq *, const char *, const char *);
+
+
+int evhttp_remove_header(struct evkeyvalq *, const char *);
 
 #endif
