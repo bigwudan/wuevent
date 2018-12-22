@@ -103,10 +103,11 @@ struct evhttp_request *evhttp_request_new(
 		void (*cb)(struct evhttp_request *, void *), void *arg);
 
 
+void evhttp_send_error(struct evhttp_request *req, int error,
+		const char *reason);
 
 
-
-
+char *evhttp_htmlescape(const char *html);
 
 
 

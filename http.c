@@ -33,6 +33,98 @@ static void name_from_addr(struct sockaddr *, socklen_t, char **, char **);
 static int evhttp_associate_new_request_with_connection(
 		struct evhttp_connection *evcon);
 
+static const char *
+html_replace(char ch, char *buf)
+{
+	switch (ch) {
+		case '<':
+			return "&lt;";
+		case '>':
+			return "&gt;";
+		case '"':
+			return "&quot;";
+		case '\'':
+			return "&#039;";
+		case '&':
+			return "&amp;";
+		default:
+			break;
+	}
+
+	/* Echo the character back */
+	buf[0] = ch;
+	buf[1] = '\0';
+
+	return buf;
+}
+
+
+static struct evhttp_cb *
+evhttp_dispatch_callback(struct httpcbq *callbacks, struct evhttp_request *req)
+{
+	struct evhttp_cb *cb;
+	size_t offset = 0;
+
+	/* Test for different URLs */
+	char *p = strchr(req->uri, '?');
+	if (p != NULL)
+		offset = (size_t)(p - req->uri);
+
+	TAILQ_FOREACH(cb, callbacks, next) {
+		int res = 0;
+		if (p == NULL) {
+			res = strcmp(cb->what, req->uri) == 0;
+		} else {
+			res = ((strncmp(cb->what, req->uri, offset) == 0) &&
+					(cb->what[offset] == '\0'));
+		}
+
+		if (res)
+			return (cb);
+	}
+
+	return (NULL);
+}
+
+
+void
+evhttp_response_code(struct evhttp_request *req, int code, const char *reason)
+{
+	req->kind = EVHTTP_RESPONSE;
+	req->response_code = code;
+	if (req->response_code_line != NULL)
+		free(req->response_code_line);
+	req->response_code_line = strdup(reason);
+}
+
+
+char *
+evhttp_htmlescape(const char *html)
+{
+	int i, new_size = 0, old_size = strlen(html);
+	char *escaped_html, *p;
+	char scratch_space[2];
+
+	for (i = 0; i < old_size; ++i)
+		new_size += strlen(html_replace(html[i], scratch_space));
+
+	p = escaped_html = malloc(new_size + 1);
+	if (escaped_html == NULL)
+		event_err(1, "%s: malloc(%d)", __func__, new_size + 1);
+	for (i = 0; i < old_size; ++i) {
+		const char *replaced = html_replace(html[i], scratch_space);
+		/* this is length checked */
+		strcpy(p, replaced);
+		p += strlen(replaced);
+	}
+
+	*p = '\0';
+
+	return (escaped_html);
+}
+
+
+
 
 static void
 evhttp_handle_request(struct evhttp_request *req, void *arg)
@@ -557,5 +649,46 @@ error:
 		evhttp_request_free(req);
 	return (NULL);
 }
+
+
+
+/*
+ *  * Returns an error page.
+ *   */
+
+void
+evhttp_send_error(struct evhttp_request *req, int error, const char *reason)
+{
+#define ERR_FORMAT "<HTML><HEAD>\n" \
+	"<TITLE>%d %s</TITLE>\n" \
+	"</HEAD><BODY>\n" \
+	"<H1>Method Not Implemented</H1>\n" \
+	"Invalid method in request<P>\n" \
+	"</BODY></HTML>\n"
+
+	struct evbuffer *buf = evbuffer_new();
+
+	/* close the connection on error */
+	evhttp_add_header(req->output_headers, "Connection", "close");
+
+	evhttp_response_code(req, error, reason);
+
+	evbuffer_add_printf(buf, ERR_FORMAT, error, reason);
+
+	evhttp_send_page(req, buf);
+
+	evbuffer_free(buf);
+#undef ERR_FORMAT
+}
+
+
+
+
+
+
+
+
+
+
 
 

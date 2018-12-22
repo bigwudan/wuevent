@@ -97,4 +97,10 @@ struct evhttp {
 
 void evhttp_get_request(struct evhttp *, int, struct sockaddr *, socklen_t);
 
+void evhttp_response_code(struct evhttp_request *, int, const char *);
+
+
+
+
+
 
