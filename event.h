@@ -98,6 +98,7 @@ void event_active(struct event *, int, short);
 int event_dispatch(void);
 int event_loop(int);
 int event_base_loop(struct event_base *, int);
+int event_pending(struct event *ev, short event, struct timeval *tv);
 
 
 /**
@@ -171,6 +172,7 @@ void evbuffer_free(struct evbuffer *);
 
 int evbuffer_add_buffer(struct evbuffer *, struct evbuffer *);
 
+int evbuffer_write(struct evbuffer *, int);
 
 #define event_initialized(ev)		((ev)->ev_flags & EVLIST_INIT)
 

@@ -1,3 +1,21 @@
+#ifndef _HTTP_H_
+#define _HTTP_H_
+
+#define HTTP_CONNECT_TIMEOUT	45
+#define HTTP_WRITE_TIMEOUT	50
+#define HTTP_READ_TIMEOUT	50
+
+#define HTTP_PREFIX		"http://"
+#define HTTP_DEFAULTPORT	80
+
+
+
+enum evhttp_connection_error {
+	EVCON_HTTP_TIMEOUT,
+	EVCON_HTTP_EOF,
+	EVCON_HTTP_INVALID_HEADER
+};
+
 
 enum evhttp_connection_state {
     EVCON_DISCONNECTED, /**< not currently connected not trying either*/
@@ -109,7 +127,19 @@ void evhttp_write_buffer(struct evhttp_connection *,
 		    void (*)(struct evhttp_connection *, void *), void *);
 
 
+void evhttp_write_buffer(struct evhttp_connection *,
+		void (*)(struct evhttp_connection *, void *), void *);
 
+void evhttp_connection_fail(struct evhttp_connection *,
+		enum evhttp_connection_error error);
+void evhttp_connection_reset(struct evhttp_connection *);
+
+
+
+int evhttp_connection_connect(struct evhttp_connection *);
+
+
+#endif
 
 
 

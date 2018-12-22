@@ -7,6 +7,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <time.h>
 
 
 #include "event.h"
@@ -21,8 +22,12 @@
     if ((x)->base != NULL) event_base_set((x)->base, y);    \
 } while (0) 
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
 
 
+
+static void evhttp_request_dispatch(struct evhttp_connection* evcon);
+static int socket_connect(int fd, const char *address, unsigned short port);
 static int bind_socket(const char *address, u_short port, int reuse);
 static int bind_socket_ai(struct addrinfo *ai, int reuse);
 int evhttp_accept_socket(struct evhttp *http, int fd);
@@ -85,6 +90,21 @@ evhttp_method(enum evhttp_cmd_type type)
 	}
 
 	return (method);
+}
+
+
+static void
+evhttp_add_event(struct event *ev, int timeout, int default_timeout)
+{
+	if (timeout != 0) {
+		struct timeval tv;
+
+		evutil_timerclear(&tv);
+		tv.tv_sec = timeout != -1 ? timeout : default_timeout;
+		event_add(ev, &tv);
+	} else {
+		event_add(ev, NULL);
+	}
 }
 
 
@@ -894,6 +914,259 @@ evbuffer_add_buffer(struct evbuffer *outbuf, struct evbuffer *inbuf)
 	return (res);
 }
 
+static int
+evhttp_connection_incoming_fail(struct evhttp_request *req,
+		    enum evhttp_connection_error error)
+{
+	switch (error) {
+		case EVCON_HTTP_TIMEOUT:
+		case EVCON_HTTP_EOF:
+			/* 
+			 *		 * these are cases in which we probably should just
+			 *				 * close the connection and not send a reply.  this
+			 *						 * case may happen when a browser keeps a persistent
+			 *								 * connection open and we timeout on the read.
+			 *										 */
+			return (-1);
+		case EVCON_HTTP_INVALID_HEADER:
+		default:	/* xxx: probably should just error on default */
+			/* the callback looks at the uri to determine errors */
+			if (req->uri) {
+				free(req->uri);
+				req->uri = NULL;
+			}
+
+			/* 
+			 *		 * the callback needs to send a reply, once the reply has
+			 *				 * been send, the connection should get freed.
+			 *						 */
+			(*req->cb)(req, req->cb_arg);
+	}
+
+	return (0);
+}
+
+
+static void
+evhttp_connection_retry(int fd, short what, void *arg)
+{
+	struct evhttp_connection *evcon = arg;
+
+	evcon->state = EVCON_DISCONNECTED;
+	evhttp_connection_connect(evcon);
+}
+
+
+
+
+
+static void
+evhttp_connectioncb(int fd, short what, void *arg)
+{
+	struct evhttp_connection *evcon = arg;
+	int error;
+	socklen_t errsz = sizeof(error);
+
+	if (what == EV_TIMEOUT) {
+		event_debug(("%s: connection timeout for \"%s:%d\" on %d",
+					__func__, evcon->address, evcon->port, evcon->fd));
+		goto cleanup;
+	}
+
+	/* Check if the connection completed */
+	if (getsockopt(evcon->fd, SOL_SOCKET, SO_ERROR, (void*)&error,
+				&errsz) == -1) {
+		event_debug(("%s: getsockopt for \"%s:%d\" on %d",
+					__func__, evcon->address, evcon->port, evcon->fd));
+		goto cleanup;
+	}
+
+	if (error) {
+		event_debug(("%s: connect failed for \"%s:%d\" on %d: %s",
+					__func__, evcon->address, evcon->port, evcon->fd,
+					strerror(error)));
+		goto cleanup;
+	}
+
+	/* We are connected to the server now */
+	event_debug(("%s: connected to \"%s:%d\" on %d\n",
+				__func__, evcon->address, evcon->port, evcon->fd));
+
+	/* Reset the retry count as we were successful in connecting */
+	evcon->retry_cnt = 0;
+	evcon->state = EVCON_IDLE;
+
+	/* try to start requests that have queued up on this connection */
+	evhttp_request_dispatch(evcon);
+	return;
+
+cleanup:
+	if (evcon->retry_max < 0 || evcon->retry_cnt < evcon->retry_max) {
+		evtimer_set(&evcon->ev, evhttp_connection_retry, evcon);
+		EVHTTP_BASE_SET(evcon, &evcon->ev);
+		evhttp_add_event(&evcon->ev, MIN(3600, 2 << evcon->retry_cnt),
+				HTTP_CONNECT_TIMEOUT);
+		evcon->retry_cnt++;
+		return;
+	}
+	evhttp_connection_reset(evcon);
+
+	/* for now, we just signal all requests by executing their callbacks */
+	while (TAILQ_FIRST(&evcon->requests) != NULL) {
+		struct evhttp_request *request = TAILQ_FIRST(&evcon->requests);
+		TAILQ_REMOVE(&evcon->requests, request, next);
+		request->evcon = NULL;
+
+		/* we might want to set an error here */
+		request->cb(request, request->cb_arg);
+		evhttp_request_free(request);
+	}
+}
+
+
+
+int
+evhttp_connection_connect(struct evhttp_connection *evcon)
+{
+	if (evcon->state == EVCON_CONNECTING)
+		return (0);
+
+	evhttp_connection_reset(evcon);
+
+	assert(!(evcon->flags & EVHTTP_CON_INCOMING));
+	evcon->flags |= EVHTTP_CON_OUTGOING;
+
+	evcon->fd = bind_socket(
+			evcon->bind_address, evcon->bind_port, 0 /*reuse*/);
+	if (evcon->fd == -1) {
+		event_debug(("%s: failed to bind to \"%s\"",
+					__func__, evcon->bind_address));
+		return (-1);
+	}
+
+	if (socket_connect(evcon->fd, evcon->address, evcon->port) == -1) {
+		EVUTIL_CLOSESOCKET(evcon->fd); evcon->fd = -1;
+		return (-1);
+	}
+
+	/* Set up a callback for successful connection setup */
+	event_set(&evcon->ev, evcon->fd, EV_WRITE, evhttp_connectioncb, evcon);
+	EVHTTP_BASE_SET(evcon, &evcon->ev);
+	evhttp_add_event(&evcon->ev, evcon->timeout, HTTP_CONNECT_TIMEOUT);
+
+	evcon->state = EVCON_CONNECTING;
+
+	return (0);
+}
+
+
+
+
+void
+evhttp_connection_reset(struct evhttp_connection *evcon)
+{
+	if (event_initialized(&evcon->ev))
+		event_del(&evcon->ev);
+
+	if (evcon->fd != -1) {
+		/* inform interested parties about connection close */
+		if (evhttp_connected(evcon) && evcon->closecb != NULL)
+			(*evcon->closecb)(evcon, evcon->closecb_arg);
+
+		EVUTIL_CLOSESOCKET(evcon->fd);
+		evcon->fd = -1;
+	}
+	evcon->state = EVCON_DISCONNECTED;
+
+	evbuffer_drain(evcon->input_buffer,
+			EVBUFFER_LENGTH(evcon->input_buffer));
+	evbuffer_drain(evcon->output_buffer,
+			EVBUFFER_LENGTH(evcon->output_buffer));
+}
+
+
+
+void
+evhttp_connection_fail(struct evhttp_connection *evcon,
+		enum evhttp_connection_error error)
+{
+	struct evhttp_request* req = TAILQ_FIRST(&evcon->requests);
+	void (*cb)(struct evhttp_request *, void *);
+	void *cb_arg;
+	assert(req != NULL);
+
+	if (evcon->flags & EVHTTP_CON_INCOMING) {
+		/* 
+		 *		 * for incoming requests, there are two different
+		 *				 * failure cases.  it's either a network level error
+		 *						 * or an http layer error. for problems on the network
+		 *								 * layer like timeouts we just drop the connections.
+		 *										 * For HTTP problems, we might have to send back a
+		 *												 * reply before the connection can be freed.
+		 *														 */
+		if (evhttp_connection_incoming_fail(req, error) == -1)
+			evhttp_connection_free(evcon);
+		return;
+	}
+
+	/* save the callback for later; the cb might free our object */
+	cb = req->cb;
+	cb_arg = req->cb_arg;
+
+	TAILQ_REMOVE(&evcon->requests, req, next);
+	evhttp_request_free(req);
+
+	/* xxx: maybe we should fail all requests??? */
+
+	/* reset the connection */
+	evhttp_connection_reset(evcon);
+
+	/* We are trying the next request that was queued on us */
+	if (TAILQ_FIRST(&evcon->requests) != NULL)
+		evhttp_connection_connect(evcon);
+
+	/* inform the user */
+	if (cb != NULL)
+		(*cb)(NULL, cb_arg);
+}
+
+
+void
+evhttp_write(int fd, short what, void *arg)
+{
+	struct evhttp_connection *evcon = arg;
+	int n;
+
+	if (what == EV_TIMEOUT) {
+		evhttp_connection_fail(evcon, EVCON_HTTP_TIMEOUT);
+		return;
+	}
+
+	n = evbuffer_write(evcon->output_buffer, fd);
+	if (n == -1) {
+		event_debug(("%s: evbuffer_write", __func__));
+		evhttp_connection_fail(evcon, EVCON_HTTP_EOF);
+		return;
+	}
+
+	if (n == 0) {
+		event_debug(("%s: write nothing", __func__));
+		evhttp_connection_fail(evcon, EVCON_HTTP_EOF);
+		return;
+	}
+
+	if (EVBUFFER_LENGTH(evcon->output_buffer) != 0) {
+		evhttp_add_event(&evcon->ev, 
+				evcon->timeout, HTTP_WRITE_TIMEOUT);
+		return;
+	}
+
+	/* Activate our call back */
+	if (evcon->cb != NULL)
+		(*evcon->cb)(evcon, evcon->cb_arg);
+}
+
+
 static void
 evhttp_send_done(struct evhttp_connection *evcon, void *arg)
 {
@@ -1041,6 +1314,42 @@ evhttp_add_header(struct evkeyvalq *headers,
 }
 
 static void
+evhttp_maybe_add_date_header(struct evkeyvalq *headers)
+{
+	if (evhttp_find_header(headers, "Date") == NULL) {
+		char date[50];
+#ifndef WIN32
+		struct tm cur;
+#endif
+		struct tm *cur_p;
+		time_t t = time(NULL);
+#ifdef WIN32
+		cur_p = gmtime(&t);
+#else
+		gmtime_r(&t, &cur);
+		cur_p = &cur;
+#endif
+		if (strftime(date, sizeof(date),
+					"%a, %d %b %Y %H:%M:%S GMT", cur_p) != 0) {
+			evhttp_add_header(headers, "Date", date);
+		}
+	}
+}
+
+static void
+evhttp_maybe_add_content_length_header(struct evkeyvalq *headers,
+		long content_length)
+{
+	if (evhttp_find_header(headers, "Transfer-Encoding") == NULL &&
+			evhttp_find_header(headers,	"Content-Length") == NULL) {
+		char len[12];
+		evutil_snprintf(len, sizeof(len), "%ld", content_length);
+		evhttp_add_header(headers, "Content-Length", len);
+	}
+}
+
+
+static void
 evhttp_make_header_response(struct evhttp_connection *evcon,
 		struct evhttp_request *req)
 {
@@ -1141,6 +1450,74 @@ evhttp_write_buffer(struct evhttp_connection *evcon,
 	evhttp_add_event(&evcon->ev, evcon->timeout, HTTP_WRITE_TIMEOUT);
 }
 
+
+static int
+socket_connect(int fd, const char *address, unsigned short port)
+{
+	struct addrinfo *ai = make_addrinfo(address, port);
+	int res = -1;
+
+	if (ai == NULL) {
+		event_debug(("%s: make_addrinfo: \"%s:%d\"",
+					__func__, address, port));
+		return (-1);
+	}
+
+	if (connect(fd, ai->ai_addr, ai->ai_addrlen) == -1) {
+		if (errno != EINPROGRESS) {
+			goto out;
+		}
+	}
+
+	/* everything is fine */
+	res = 0;
+
+out:
+	freeaddrinfo(ai);
+	return (res);
+}
+
+
+
+static void
+evhttp_write_connectioncb(struct evhttp_connection *evcon, void *arg)
+{
+	/* This is after writing the request to the server */
+	struct evhttp_request *req = TAILQ_FIRST(&evcon->requests);
+	assert(req != NULL);
+
+	assert(evcon->state == EVCON_WRITING);
+
+	/* We are done writing our header and are now expecting the response */
+	req->kind = EVHTTP_RESPONSE;
+
+	evhttp_start_read(evcon);
+}
+
+
+
+static void
+evhttp_request_dispatch(struct evhttp_connection* evcon)
+{
+	struct evhttp_request *req = TAILQ_FIRST(&evcon->requests);
+
+	/* this should not usually happy but it's possible */
+	if (req == NULL)
+		return;
+
+	/* delete possible close detection events */
+	evhttp_connection_stop_detectclose(evcon);
+
+	/* we assume that the connection is connected already */
+	assert(evcon->state == EVCON_IDLE);
+
+	evcon->state = EVCON_WRITING;
+
+	/* Create the header from the store arguments */
+	evhttp_make_header(evcon, req);
+
+	evhttp_write_buffer(evcon, evhttp_write_connectioncb, NULL);
+}
 
 
 
