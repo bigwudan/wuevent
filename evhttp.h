@@ -1,8 +1,8 @@
 #ifndef _EVHTTP_H_
 #define _EVHTTP_H_
 
+#include <stdint.h>
 #include "event.h"
-
 
 
 /* Response codes */
