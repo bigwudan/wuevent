@@ -2,6 +2,7 @@
 #define _EVUTIL_H_
 
 #include <errno.h>
+#include <sys/time.h>
 
 extern const char *evutil_getenv(const char *varname);
 
@@ -12,9 +13,13 @@ int evutil_make_socket_nonblocking(int sock);
 int evutil_snprintf(char *buf, size_t buflen, const char *format, ...);
 int evutil_vsnprintf(char *buf, size_t buflen, const char *format, va_list ap);
 
+
+
 /*
  *  * Manipulation functions for struct timeval
  *   */
+#define evutil_gettimeofday(tv, tz) gettimeofday((tv), (tz))
+
 #ifdef _EVENT_HAVE_TIMERADD
 #define evutil_timeradd(tvp, uvp, vvp) timeradd((tvp), (uvp), (vvp))
 #define evutil_timersub(tvp, uvp, vvp) timersub((tvp), (uvp), (vvp))

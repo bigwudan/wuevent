@@ -6,6 +6,7 @@
 #include <fcntl.h>
 
 #include "log.h"
+#include "evutil.h"
 
 const char *
 evutil_getenv(const char *varname)
@@ -42,5 +43,6 @@ evutil_vsnprintf(char *buf, size_t buflen, const char *format, va_list ap)
 {
 	return 0;
 }
+
 
 
