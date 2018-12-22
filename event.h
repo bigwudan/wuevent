@@ -101,6 +101,19 @@ int event_base_loop(struct event_base *, int);
 #define EVLOOP_NONBLOCK	0x02	/**< Do not block. */
 /*@}*/
 
+struct evbuffer {
+	u_char *buffer;
+	u_char *orig_buffer;
+
+	size_t misalign;
+	size_t totallen;
+	size_t off;
+
+	void (*cb)(struct evbuffer *, size_t, size_t, void *);
+	void *cbarg;
+};
+
+
 
 struct bufferevent;
 typedef void (*evbuffercb)(struct bufferevent *, void *);
@@ -139,9 +152,15 @@ struct bufferevent {
 #endif
 
 
+struct evbuffer *evbuffer_new(void);
+int evbuffer_add(struct evbuffer *, const void *, size_t);
+void evbuffer_drain(struct evbuffer *, size_t);
+int evbuffer_expand(struct evbuffer *buf, size_t datlen);
 
-
-
+#define EVBUFFER_LENGTH(x)	(x)->off
+#define EVBUFFER_DATA(x)	(x)->buffer
+#define EVBUFFER_INPUT(x)	(x)->input
+#define EVBUFFER_OUTPUT(x)	(x)->output
 
 
 #endif /* _EVENT_H_ */

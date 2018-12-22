@@ -37,6 +37,10 @@ evutil_snprintf(char *buf, size_t buflen, const char *format, ...)
     return 0;
 }
 
-
+int
+evutil_vsnprintf(char *buf, size_t buflen, const char *format, va_list ap)
+{
+	return 0;
+}
 
 
