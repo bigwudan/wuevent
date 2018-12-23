@@ -4,6 +4,10 @@
 #include <errno.h>
 #include <sys/time.h>
 
+#define ev_uint64_t uint64_t
+#define ev_int64_t int64_t
+
+
 extern const char *evutil_getenv(const char *varname);
 
 int evutil_socketpair(int d, int type, int protocol, int sv[2]);
@@ -12,6 +16,9 @@ int evutil_make_socket_nonblocking(int sock);
 
 int evutil_snprintf(char *buf, size_t buflen, const char *format, ...);
 int evutil_vsnprintf(char *buf, size_t buflen, const char *format, va_list ap);
+
+
+ev_int64_t evutil_strtoll(const char *s, char **endptr, int base);
 
 
 

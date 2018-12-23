@@ -74,9 +74,9 @@ EVLIST_SIGNAL	event.h	19;"	d
 EVLIST_TIMEOUT	event.h	17;"	d
 EVLOOP_NONBLOCK	event.h	109;"	d
 EVLOOP_ONCE	event.h	108;"	d
-EVUTIL_CLOSESOCKET	evutil.h	55;"	d
-EVUTIL_SET_SOCKET_ERROR	evutil.h	64;"	d
-EVUTIL_SOCKET_ERROR	evutil.h	63;"	d
+EVUTIL_CLOSESOCKET	evutil.h	53;"	d
+EVUTIL_SET_SOCKET_ERROR	evutil.h	62;"	d
+EVUTIL_SOCKET_ERROR	evutil.h	61;"	d
 EV_PERSIST	event.h	33;"	d
 EV_READ	event.h	30;"	d
 EV_SIGNAL	event.h	32;"	d
@@ -395,17 +395,17 @@ evtimer_add	event.h	80;"	d
 evtimer_del	event.h	81;"	d
 evtimer_set	event.h	83;"	d
 evutil_getenv	evutil.c	/^evutil_getenv(const char *varname)$/;"	f
-evutil_gettimeofday	evutil.c	/^evutil_gettimeofday(struct timeval *tv, struct timezone *tz)$/;"	f
+evutil_gettimeofday	evutil.h	21;"	d
 evutil_make_socket_nonblocking	evutil.c	/^evutil_make_socket_nonblocking(int fd)$/;"	f
 evutil_snprintf	evutil.c	/^evutil_snprintf(char *buf, size_t buflen, const char *format, ...)$/;"	f
 evutil_socketpair	evutil.c	/^evutil_socketpair(int family, int type, int protocol, int fd[2])$/;"	f
-evutil_timeradd	evutil.h	26;"	d
-evutil_timeradd	evutil.h	29;"	d
+evutil_timeradd	evutil.h	24;"	d
+evutil_timeradd	evutil.h	27;"	d
+evutil_timerclear	evutil.h	48;"	d
 evutil_timerclear	evutil.h	50;"	d
-evutil_timerclear	evutil.h	52;"	d
-evutil_timercmp	evutil.h	57;"	d
-evutil_timersub	evutil.h	27;"	d
-evutil_timersub	evutil.h	38;"	d
+evutil_timercmp	evutil.h	55;"	d
+evutil_timersub	evutil.h	25;"	d
+evutil_timersub	evutil.h	36;"	d
 evutil_vsnprintf	evutil.c	/^evutil_vsnprintf(char *buf, size_t buflen, const char *format, va_list ap)$/;"	f
 evwrite	epoll.c	/^    struct event *evwrite;$/;"	m	struct:evepoll	typeref:struct:evepoll::event	file:
 fd	http-internal.h	/^    int fd;$/;"	m	struct:evhttp_connection
@@ -524,7 +524,6 @@ timespeccmp	sys/_libevent_time.h	107;"	d
 timespecisset	sys/_libevent_time.h	106;"	d
 timespecsub	sys/_libevent_time.h	120;"	d
 timeval	sys/_libevent_time.h	/^struct timeval {$/;"	s
-timezone	evutil.h	/^struct timezone {$/;"	s
 timezone	sys/_libevent_time.h	/^struct timezone {$/;"	s
 totallen	event.h	/^	size_t totallen;$/;"	m	struct:evbuffer
 tqe_next	evhttp.h	/^		struct evhttp_request *tqe_next;$/;"	m	struct:evhttp_request::__anon1	typeref:struct:evhttp_request::__anon1::evhttp_request
@@ -535,9 +534,7 @@ tv_sec	sys/_libevent_time.h	/^	long	tv_sec;		\/* seconds *\/$/;"	m	struct:timeva
 tv_sec	sys/_libevent_time.h	/^	time_t	tv_sec;		\/* seconds *\/$/;"	m	struct:timespec
 tv_usec	sys/_libevent_time.h	/^	long	tv_usec;	\/* and microseconds *\/$/;"	m	struct:timeval
 type	evhttp.h	/^	enum evhttp_cmd_type type;$/;"	m	struct:evhttp_request	typeref:enum:evhttp_request::evhttp_cmd_type
-tz_dsttime	evutil.h	/^	int	tz_dsttime;	\/* type of dst correction *\/$/;"	m	struct:timezone
 tz_dsttime	sys/_libevent_time.h	/^	int	tz_dsttime;	\/* type of dst correction *\/$/;"	m	struct:timezone
-tz_minuteswest	evutil.h	/^	int	tz_minuteswest;	\/* minutes west of Greenwich *\/$/;"	m	struct:timezone
 tz_minuteswest	sys/_libevent_time.h	/^	int	tz_minuteswest;	\/* minutes west of Greenwich *\/$/;"	m	struct:timezone
 uri	evhttp.h	/^	char *uri;			\/* uri after HTTP request was parsed *\/$/;"	m	struct:evhttp_request
 use_monotonic	event.c	/^static int use_monotonic;$/;"	v	file:

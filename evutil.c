@@ -44,5 +44,12 @@ evutil_vsnprintf(char *buf, size_t buflen, const char *format, va_list ap)
 	return 0;
 }
 
+ev_int64_t
+evutil_strtoll(const char *s, char **endptr, int base)
+{
+	return (ev_int64_t)strtol(s, endptr, base);
+}
+
+
 
 

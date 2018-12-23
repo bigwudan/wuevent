@@ -8,7 +8,12 @@
 #define HTTP_PREFIX		"http://"
 #define HTTP_DEFAULTPORT	80
 
-
+enum message_read_status {
+	ALL_DATA_READ = 1,
+	MORE_DATA_EXPECTED = 0,
+	DATA_CORRUPTED = -1,
+	REQUEST_CANCELED = -2
+};
 
 enum evhttp_connection_error {
 	EVCON_HTTP_TIMEOUT,
@@ -138,6 +143,10 @@ void evhttp_connection_reset(struct evhttp_connection *);
 
 int evhttp_connection_connect(struct evhttp_connection *);
 
+
+int evhttp_parse_firstline(struct evhttp_request *, struct evbuffer*);
+
+int evhttp_parse_headers(struct evhttp_request *, struct evbuffer*);
 
 #endif
 

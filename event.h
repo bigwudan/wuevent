@@ -173,6 +173,10 @@ void evbuffer_free(struct evbuffer *);
 int evbuffer_add_buffer(struct evbuffer *, struct evbuffer *);
 
 int evbuffer_write(struct evbuffer *, int);
+int evbuffer_read(struct evbuffer *, int, int);
+
+char *evbuffer_readline(struct evbuffer *);
+
 
 #define event_initialized(ev)		((ev)->ev_flags & EVLIST_INIT)
 
