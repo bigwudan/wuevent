@@ -329,6 +329,131 @@ evhttp_get_body_length(struct evhttp_request *req)
 }
 
 
+static enum message_read_status
+evhttp_handle_chunked_read(struct evhttp_request *req, struct evbuffer *buf)
+{
+	int len;
+
+	while ((len = EVBUFFER_LENGTH(buf)) > 0) {
+		if (req->ntoread < 0) {
+			/* Read chunk size */
+			ev_int64_t ntoread;
+			char *p = evbuffer_readline(buf);
+			char *endp;
+			int error;
+			if (p == NULL)
+				break;
+			/* the last chunk is on a new line? */
+			if (strlen(p) == 0) {
+				free(p);
+				continue;
+			}
+			ntoread = evutil_strtoll(p, &endp, 16);
+			error = (*p == '\0' ||
+					(*endp != '\0' && *endp != ' ') ||
+					ntoread < 0);
+			free(p);
+			if (error) {
+				/* could not get chunk size */
+				return (DATA_CORRUPTED);
+			}
+			req->ntoread = ntoread;
+			if (req->ntoread == 0) {
+				/* Last chunk */
+				return (ALL_DATA_READ);
+			}
+			continue;
+		}
+
+		/* don't have enough to complete a chunk; wait for more */
+		if (len < req->ntoread)
+			return (MORE_DATA_EXPECTED);
+
+		/* Completed chunk */
+		evbuffer_add(req->input_buffer,
+				EVBUFFER_DATA(buf), (size_t)req->ntoread);
+		evbuffer_drain(buf, (size_t)req->ntoread);
+		req->ntoread = -1;
+		if (req->chunk_cb != NULL) {
+			(*req->chunk_cb)(req, req->cb_arg);
+			evbuffer_drain(req->input_buffer,
+					EVBUFFER_LENGTH(req->input_buffer));
+		}
+	}
+
+	return (MORE_DATA_EXPECTED);
+}
+
+
+
+static void
+evhttp_read_trailer(struct evhttp_connection *evcon, struct evhttp_request *req)
+{
+	struct evbuffer *buf = evcon->input_buffer;
+
+	switch (evhttp_parse_headers(req, buf)) {
+		case DATA_CORRUPTED:
+			evhttp_connection_fail(evcon, EVCON_HTTP_INVALID_HEADER);
+			break;
+		case ALL_DATA_READ:
+			event_del(&evcon->ev);
+			evhttp_connection_done(evcon);
+			break;
+		case MORE_DATA_EXPECTED:
+		default:
+			evhttp_add_event(&evcon->ev, evcon->timeout,
+					HTTP_READ_TIMEOUT);
+			break;
+	}
+}
+
+
+
+static void
+evhttp_read_body(struct evhttp_connection *evcon, struct evhttp_request *req)
+{
+	struct evbuffer *buf = evcon->input_buffer;
+
+	if (req->chunked) {
+		switch (evhttp_handle_chunked_read(req, buf)) {
+			case ALL_DATA_READ:
+				/* finished last chunk */
+				evcon->state = EVCON_READING_TRAILER;
+				evhttp_read_trailer(evcon, req);
+				return;
+			case DATA_CORRUPTED:
+				/* corrupted data */
+				evhttp_connection_fail(evcon,
+						EVCON_HTTP_INVALID_HEADER);
+				return;
+			case REQUEST_CANCELED:
+				/* request canceled */
+				evhttp_request_free(req);
+				return;
+			case MORE_DATA_EXPECTED:
+			default:
+				break;
+		}
+	} else if (req->ntoread < 0) {
+		/* Read until connection close. */
+		evbuffer_add_buffer(req->input_buffer, buf);
+	} else if (EVBUFFER_LENGTH(buf) >= req->ntoread) {
+		/* Completed content length */
+		evbuffer_add(req->input_buffer, EVBUFFER_DATA(buf),
+				(size_t)req->ntoread);
+		evbuffer_drain(buf, (size_t)req->ntoread);
+		req->ntoread = 0;
+		evhttp_connection_done(evcon);
+		return;
+	}
+	/* Read more! */
+	event_set(&evcon->ev, evcon->fd, EV_READ, evhttp_read, evcon);
+	EVHTTP_BASE_SET(evcon, &evcon->ev);
+	evhttp_add_event(&evcon->ev, evcon->timeout, HTTP_READ_TIMEOUT);
+}
+
+
+
 
 
 static void
@@ -1744,60 +1869,6 @@ out:
 }
 
 
-static void
-evhttp_connection_done(struct evhttp_connection *evcon)
-{
-	struct evhttp_request *req = TAILQ_FIRST(&evcon->requests);
-	int con_outgoing = evcon->flags & EVHTTP_CON_OUTGOING;
-
-	if (con_outgoing) {
-		/* idle or close the connection */
-		int need_close;
-		TAILQ_REMOVE(&evcon->requests, req, next);
-		req->evcon = NULL;
-
-		evcon->state = EVCON_IDLE;
-
-		need_close = 
-			evhttp_is_connection_close(req->flags, req->input_headers)||
-			evhttp_is_connection_close(req->flags, req->output_headers);
-
-		/* check if we got asked to close the connection */
-		if (need_close)
-			evhttp_connection_reset(evcon);
-
-		if (TAILQ_FIRST(&evcon->requests) != NULL) {
-			/*
-			 *			 * We have more requests; reset the connection
-			 *						 * and deal with the next request.
-			 *									 */
-			if (!evhttp_connected(evcon))
-				evhttp_connection_connect(evcon);
-			else
-				evhttp_request_dispatch(evcon);
-		} else if (!need_close) {
-			/*
-			 *			 * The connection is going to be persistent, but we
-			 *						 * need to detect if the other side closes it.
-			 *									 */
-			evhttp_connection_start_detectclose(evcon);
-		}
-	} else {
-		/*
-		 *		 * incoming connection - we need to leave the request on the
-		 *				 * connection so that we can reply to it.
-		 *						 */
-		evcon->state = EVCON_WRITING;
-	}
-
-	/* notify the user of the request */
-	(*req->cb)(req, req->cb_arg);
-
-	/* if this was an outgoing request, we own and it's done. so free it */
-	if (con_outgoing) {
-		evhttp_request_free(req);
-	}
-}
 
 
 static int
