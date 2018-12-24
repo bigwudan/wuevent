@@ -33,7 +33,8 @@ http_setup(short *pport, struct event_base *base)
     /* Try a few different ports */
     myhttp = evhttp_new(base);
 
-    evhttp_bind_socket(myhttp, "127.0.0.1", 8080 + i) != -1;
+    int t_a = evhttp_bind_socket(myhttp, "127.0.0.1", 8080 + i) != -1;
+	printf("t_a=%d\n", t_a);
 
 
 
@@ -68,36 +69,12 @@ http_base_test(void)
 }
 
 
-static void
-signal_cb(int fd, short event, void *arg)
-{
-    struct event *signal = arg;
-
-    printf("%s: got signal %d\n", __func__, EVENT_SIGNAL(signal));
-
-    if (called >= 2)
-        event_del(signal);
-
-    called++;
-}
 
 int
 main (int argc, char **argv)
 {
     http_base_test();
 
-    struct event signal_int;
-
-    /* Initalize the event library */
-    event_init();
-
-    /* Initalize one event */
-    event_set(&signal_int, SIGINT, EV_SIGNAL|EV_PERSIST, signal_cb,
-            &signal_int);
-
-    event_add(&signal_int, NULL);
-
-    event_dispatch();
 
     return (0);
 }
