@@ -200,6 +200,13 @@ int bufferevent_enable(struct bufferevent *bufev, short event);
 
 int bufferevent_disable(struct bufferevent *bufev, short event);
 
+int bufferevent_base_set(struct event_base *base, struct bufferevent *bufev);
+
+int bufferevent_write(struct bufferevent *bufev,
+            const void *data, size_t size);
+
+
+
 int event_base_once(struct event_base *base, int fd, short events,
         void (*callback)(int, short, void *), void *arg,
         const struct timeval *timeout);
@@ -210,6 +217,8 @@ int event_base_set(struct event_base *, struct event *);
 int event_once(int, short, void (*)(int, short, void *), void *,
         const struct timeval *);
 
+int event_base_dispatch(struct event_base *);
+void event_base_free(struct event_base *);
 
 int event_loopexit(const struct timeval *);
 
@@ -218,6 +227,10 @@ struct bufferevent *bufferevent_new(int fd,
 
 void bufferevent_setcb(struct bufferevent *bufev,
         evbuffercb readcb, evbuffercb writecb, everrorcb errorcb, void *cbarg);
+
+
+void bufferevent_free(struct bufferevent *bufev);
+
 
 
 #define event_initialized(ev)		((ev)->ev_flags & EVLIST_INIT)

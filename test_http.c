@@ -195,6 +195,23 @@ http_base_test(void)
             http_errorcb, NULL);
 
 
+    bufferevent_base_set(base, bev);
+
+    http_request =
+        "GET /test HTTP/1.1\r\n"
+        "Host: somehost\r\n"
+        "Connection: close\r\n"
+        "\r\n";
+
+    bufferevent_write(bev, http_request, strlen(http_request));
+    event_base_dispatch(base);
+
+    bufferevent_free(bev);
+    EVUTIL_CLOSESOCKET(fd);
+
+    evhttp_free(http);
+
+    event_base_free(base);
 
 
 

@@ -124,5 +124,9 @@ void evhttp_set_cb(struct evhttp *, const char *,
         void (*)(struct evhttp_request *, void *), void *);
 
 
+void evhttp_free(struct evhttp* http);
+
+
+
 
 #endif
