@@ -2,6 +2,7 @@
 #define _EVENT_H_
 
 #include <sys/types.h>
+#include <stdarg.h>
 
 #include "sys/queue.h"
 

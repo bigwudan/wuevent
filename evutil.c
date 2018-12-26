@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <stdarg.h>
 
 #include "log.h"
 #include "evutil.h"
@@ -35,13 +36,20 @@ evutil_make_socket_nonblocking(int fd)
 int
 evutil_snprintf(char *buf, size_t buflen, const char *format, ...)
 {
-    return 0;
+    int r;
+    va_list ap;
+    va_start(ap, format);
+    r = evutil_vsnprintf(buf, buflen, format, ap);
+    va_end(ap);
+    return r;
 }
 
 int
 evutil_vsnprintf(char *buf, size_t buflen, const char *format, va_list ap)
 {
-	return 0;
+    int r = vsnprintf(buf, buflen, format, ap);
+    buf[buflen-1] = '\0';
+    return r;
 }
 
 ev_int64_t

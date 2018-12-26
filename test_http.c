@@ -23,18 +23,33 @@ int test_ok;
 static struct evhttp *http;
 static struct event_base *base;
 
+
+void http_basic_cb(struct evhttp_request *req, void *arg);
+
+void
+http_basic_cb(struct evhttp_request *req, void *arg)
+{
+    printf("run http_basic_cb..\n ");
+}
+
+
+
+
 static struct evhttp *
 http_setup(short *pport, struct event_base *base)
 {
-    int i;
+    int i = 0;
     struct evhttp *myhttp;
     short port = -1;
 
     /* Try a few different ports */
     myhttp = evhttp_new(base);
 
-    int t_a = evhttp_bind_socket(myhttp, "127.0.0.1", 8080 + i) != -1;
+    int t_a = evhttp_bind_socket(myhttp, "127.0.0.1", 8080 + i) ;
 	printf("t_a=%d\n", t_a);
+    
+    evhttp_set_cb(myhttp, "/test", http_basic_cb, NULL);
+
 
 
 

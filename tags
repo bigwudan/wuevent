@@ -394,6 +394,7 @@ evhttp_send	http.c	/^evhttp_send(struct evhttp_request *req, struct evbuffer *da
 evhttp_send_done	http.c	/^evhttp_send_done(struct evhttp_connection *evcon, void *arg)$/;"	f	file:
 evhttp_send_error	http.c	/^evhttp_send_error(struct evhttp_request *req, int error, const char *reason)$/;"	f
 evhttp_send_page	http.c	/^evhttp_send_page(struct evhttp_request *req, struct evbuffer *databuf)$/;"	f
+evhttp_set_cb	http.c	/^evhttp_set_cb(struct evhttp *http, const char *uri,$/;"	f
 evhttp_start_read	http.c	/^evhttp_start_read(struct evhttp_connection *evcon)$/;"	f
 evhttp_valid_response_code	http.c	/^evhttp_valid_response_code(int code)$/;"	f	file:
 evhttp_write	http.c	/^evhttp_write(int fd, short what, void *arg)$/;"	f
@@ -443,6 +444,7 @@ high	event.h	/^    size_t high;$/;"	m	struct:event_watermark
 html_replace	http.c	/^html_replace(char ch, char *buf)$/;"	f	file:
 http	test_http.c	/^static struct evhttp *http;$/;"	v	typeref:struct:evhttp	file:
 http_base_test	test_http.c	/^http_base_test(void)$/;"	f	file:
+http_basic_cb	test_http.c	/^http_basic_cb(struct evhttp_request *req, void *arg)$/;"	f
 http_server	http-internal.h	/^    struct evhttp *http_server;$/;"	m	struct:evhttp_connection	typeref:struct:evhttp_connection::evhttp
 http_setup	test_http.c	/^http_setup(short *pport, struct event_base *base)$/;"	f	file:
 hz	sys/_libevent_time.h	/^	int	hz;		\/* clock frequency *\/$/;"	m	struct:clockinfo

@@ -120,4 +120,9 @@ int evhttp_add_header(struct evkeyvalq *, const char *, const char *);
 
 int evhttp_remove_header(struct evkeyvalq *, const char *);
 
+void evhttp_set_cb(struct evhttp *, const char *,
+        void (*)(struct evhttp_request *, void *), void *);
+
+
+
 #endif
