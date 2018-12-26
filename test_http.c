@@ -28,10 +28,30 @@ static struct event_base *base;
 
 void http_basic_cb(struct evhttp_request *req, void *arg);
 
+static void
+http_errorcb(struct bufferevent *bev, short what, void *arg)
+{
+    test_ok = -2;
+    event_loopexit(NULL);
+}
+
+
+
 void
 http_basic_cb(struct evhttp_request *req, void *arg)
 {
     printf("run http_basic_cb..\n ");
+}
+
+
+static void
+http_writecb(struct bufferevent *bev, void *arg)
+{
+    if (EVBUFFER_LENGTH(bev->output) == 0) {
+        /* enable reading of the reply */
+        bufferevent_enable(bev, EV_READ);
+        test_ok++;
+    }
 }
 
 

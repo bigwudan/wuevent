@@ -13,8 +13,11 @@
 #include "evutil.h"
 #include "event.h"
 
-
+int test_ok = 0;
 void bufferevent_read_pressure_cb(struct evbuffer *, size_t, size_t, void *);
+
+
+
 
 
 static int
@@ -183,6 +186,18 @@ error:
 }
 
 
+void
+bufferevent_setcb(struct bufferevent *bufev,
+        evbuffercb readcb, evbuffercb writecb, everrorcb errorcb, void *cbarg)
+{
+    bufev->readcb = readcb;
+    bufev->writecb = writecb;
+    bufev->errorcb = errorcb;
+
+    bufev->cbarg = cbarg;
+}
+
+
 
 
 
@@ -219,6 +234,22 @@ bufferevent_new(int fd, evbuffercb readcb, evbuffercb writecb,
     bufev->enabled = EV_WRITE;
 
     return (bufev);
+}
+
+int
+bufferevent_enable(struct bufferevent *bufev, short event)
+{
+    if (event & EV_READ) {
+        if (bufferevent_add(&bufev->ev_read, bufev->timeout_read) == -1)
+            return (-1);
+    }
+    if (event & EV_WRITE) {
+        if (bufferevent_add(&bufev->ev_write, bufev->timeout_write) == -1)
+            return (-1);
+    }
+
+    bufev->enabled |= event;
+    return (0);
 }
 
 

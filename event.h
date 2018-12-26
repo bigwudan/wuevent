@@ -195,6 +195,9 @@ char *evbuffer_readline(struct evbuffer *);
 u_char *evbuffer_find(struct evbuffer *, const u_char *, size_t);
 
 
+
+int bufferevent_enable(struct bufferevent *bufev, short event);
+
 int bufferevent_disable(struct bufferevent *bufev, short event);
 
 int event_base_once(struct event_base *base, int fd, short events,
@@ -212,6 +215,10 @@ int event_loopexit(const struct timeval *);
 
 struct bufferevent *bufferevent_new(int fd,
         evbuffercb readcb, evbuffercb writecb, everrorcb errorcb, void *cbarg);
+
+void bufferevent_setcb(struct bufferevent *bufev,
+        evbuffercb readcb, evbuffercb writecb, everrorcb errorcb, void *cbarg);
+
 
 #define event_initialized(ev)		((ev)->ev_flags & EVLIST_INIT)
 

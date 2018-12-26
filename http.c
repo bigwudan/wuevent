@@ -748,18 +748,6 @@ evhttp_handle_request(struct evhttp_request *req, void *arg)
 
 
 
-int
-event_base_set(struct event_base *base, struct event *ev)
-{
-    /* Only innocent events may be assigned to a different base */
-    if (ev->ev_flags != EVLIST_INIT)
-        return (-1);
-
-    ev->ev_base = base;
-    ev->ev_pri = base->nactivequeues/2;
-
-    return (0);
-}
 
 static struct evhttp_connection*
 evhttp_get_request_connection(
