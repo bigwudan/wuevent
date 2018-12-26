@@ -165,6 +165,20 @@ event_set(struct event *ev, int fd, short events,
         ev->ev_pri = current_base->nactivequeues/2;
 }
 
+
+int
+event_base_set(struct event_base *base, struct event *ev)
+{
+    if (ev->ev_flags != EVLIST_INIT)
+        return (-1);
+
+    ev->ev_base = base;
+    ev->ev_pri = base->nactivequeues/2;
+
+    return (0);
+}
+
+
 int
 event_add(struct event *ev, const struct timeval *tv)
 {
@@ -603,5 +617,103 @@ event_pending(struct event *ev, short event, struct timeval *tv)
 
 	return (flags & event);
 }
+
+
+struct event_once {
+    struct event ev;
+
+    void (*cb)(int, short, void *);
+    void *arg;
+};
+
+static void
+event_loopexit_cb(int fd, short what, void *arg)
+{
+    struct event_base *base = arg;
+    base->event_gotterm = 1;
+}
+
+/* not thread safe */
+int
+event_loopexit(const struct timeval *tv)
+{
+    return (event_once(-1, EV_TIMEOUT, event_loopexit_cb,
+                current_base, tv));
+}
+
+
+
+static void
+event_once_cb(int fd, short events, void *arg)
+{
+    struct event_once *eonce = arg;
+
+    (*eonce->cb)(fd, events, eonce->arg);
+    free(eonce);
+}
+
+int
+event_once(int fd, short events,
+        void (*callback)(int, short, void *), void *arg, const struct timeval *tv)
+{
+    return event_base_once(current_base, fd, events, callback, arg, tv);
+}
+
+
+
+int
+event_base_once(struct event_base *base, int fd, short events,
+        void (*callback)(int, short, void *), void *arg, const struct timeval *tv)
+{
+    struct event_once *eonce;
+    struct timeval etv;
+    int res;
+
+    /* We cannot support signals that just fire once */
+    if (events & EV_SIGNAL)
+        return (-1);
+
+    if ((eonce = calloc(1, sizeof(struct event_once))) == NULL)
+        return (-1);
+
+    eonce->cb = callback;
+    eonce->arg = arg;
+
+    if (events == EV_TIMEOUT) {
+        if (tv == NULL) {
+            evutil_timerclear(&etv);
+            tv = &etv;
+        }
+
+        evtimer_set(&eonce->ev, event_once_cb, eonce);
+    } else if (events & (EV_READ|EV_WRITE)) {
+        events &= EV_READ|EV_WRITE;
+
+        event_set(&eonce->ev, fd, events, event_once_cb, eonce);
+    } else {
+        /* Bad event combination */
+        free(eonce);
+        return (-1);
+    }
+
+    res = event_base_set(base, &eonce->ev);
+    if (res == 0)
+        res = event_add(&eonce->ev, tv);
+    if (res != 0) {
+        free(eonce);
+        return (res);
+    }
+
+    return (0);
+}
+
+int
+event_base_loopexit(struct event_base *event_base, const struct timeval *tv)
+{
+    return (event_base_once(event_base, -1, EV_TIMEOUT, event_loopexit_cb,
+                event_base, tv));
+}
+
+
 
 

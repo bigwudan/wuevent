@@ -10,12 +10,14 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <netdb.h>
 
 
 #include "event.h"
 #include "evutil.h"
 #include "http-internal.h"
 #include "evhttp.h"
+#include "log.h"
 
 
 int called = 0;
@@ -34,6 +36,93 @@ http_basic_cb(struct evhttp_request *req, void *arg)
 
 
 
+static void
+http_readcb(struct bufferevent *bev, void *arg)
+{
+    const char *what = "This is funny";
+
+    event_debug(("%s: %s\n", __func__, EVBUFFER_DATA(bev->input)));
+
+    if (evbuffer_find(bev->input,
+                (const unsigned char*) what, strlen(what)) != NULL) {
+        struct evhttp_request *req = evhttp_request_new(NULL, NULL);
+        enum message_read_status done;
+
+        req->kind = EVHTTP_RESPONSE;
+        done = evhttp_parse_firstline(req, bev->input);
+        if (done != ALL_DATA_READ)
+            goto out;
+
+        done = evhttp_parse_headers(req, bev->input);
+        if (done != ALL_DATA_READ)
+            goto out;
+
+        if (done == 1 &&
+                evhttp_find_header(req->input_headers,
+                    "Content-Type") != NULL)
+            test_ok++;
+
+out:
+        evhttp_request_free(req);
+        bufferevent_disable(bev, EV_READ);
+        if (base)
+            event_base_loopexit(base, NULL);
+        else
+            event_loopexit(NULL);
+    }
+}
+
+
+
+
+
+
+
+
+#ifndef NI_MAXSERV
+#define NI_MAXSERV 1024
+#endif
+
+static int
+http_connect(const char *address, u_short port)
+{
+
+    struct addrinfo ai, *aitop;
+    char strport[NI_MAXSERV];
+
+    struct sockaddr *sa;
+        int slen;
+    int fd;
+
+    memset(&ai, 0, sizeof (ai));
+    ai.ai_family = AF_INET;
+    ai.ai_socktype = SOCK_STREAM;
+    snprintf(strport, sizeof (strport), "%d", port);
+    if (getaddrinfo(address, strport, &ai, &aitop) != 0) {
+        event_warn("getaddrinfo");
+        return (-1);
+    }
+    sa = aitop->ai_addr;
+    slen = aitop->ai_addrlen;
+
+
+    fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (fd == -1)
+        event_err(1, "socket failed");
+
+    if (connect(fd, sa, slen) == -1)
+        event_err(1, "connect failed");
+
+
+    freeaddrinfo(aitop);
+
+
+    return (fd);
+}
+
+
+
+
 
 static struct evhttp *
 http_setup(short *pport, struct event_base *base)
@@ -45,15 +134,17 @@ http_setup(short *pport, struct event_base *base)
     /* Try a few different ports */
     myhttp = evhttp_new(base);
 
-    int t_a = evhttp_bind_socket(myhttp, "127.0.0.1", 8080 + i) ;
-	printf("t_a=%d\n", t_a);
-    
+    for (i = 0; i < 2; ++i) {
+        if (evhttp_bind_socket(myhttp, "127.0.0.1", 8080 + i) != -1) {
+            port = 8080 + i;
+            break;
+        }
+    }
+    if(port == -1){
+        exit(1);
+    }
     evhttp_set_cb(myhttp, "/test", http_basic_cb, NULL);
-
-
-
-
-
+    *pport = port;
     return (myhttp);
 }
 
@@ -77,6 +168,14 @@ http_base_test(void)
 
 
     http = http_setup(&port, base);
+
+    fd = http_connect("127.0.0.1", port);
+
+    bev = bufferevent_new(fd, http_readcb, http_writecb,
+            http_errorcb, NULL);
+
+
+
 
 
     printf("test\n");

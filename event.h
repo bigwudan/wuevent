@@ -110,6 +110,15 @@ int event_pending(struct event *ev, short event, struct timeval *tv);
 #define EVLOOP_NONBLOCK	0x02	/**< Do not block. */
 /*@}*/
 
+/* Just for error reporting - use other constants otherwise */
+#define EVBUFFER_READ       0x01
+#define EVBUFFER_WRITE      0x02
+#define EVBUFFER_EOF        0x10
+#define EVBUFFER_ERROR      0x20
+#define EVBUFFER_TIMEOUT    0x40
+
+
+
 struct evbuffer {
 	u_char *buffer;
 	u_char *orig_buffer;
@@ -161,10 +170,15 @@ struct bufferevent {
 #endif
 
 
+int event_base_loopexit(struct event_base *, const struct timeval *);
+
 struct evbuffer *evbuffer_new(void);
 int evbuffer_add(struct evbuffer *, const void *, size_t);
 void evbuffer_drain(struct evbuffer *, size_t);
 int evbuffer_expand(struct evbuffer *buf, size_t datlen);
+
+void evbuffer_setcb(struct evbuffer *, void (*)(struct evbuffer *, size_t, size_t, void *), void *);
+
 
 
 int evbuffer_add_printf(struct evbuffer *buf, const char *fmt, ...);
@@ -178,6 +192,26 @@ int evbuffer_read(struct evbuffer *, int, int);
 
 char *evbuffer_readline(struct evbuffer *);
 
+u_char *evbuffer_find(struct evbuffer *, const u_char *, size_t);
+
+
+int bufferevent_disable(struct bufferevent *bufev, short event);
+
+int event_base_once(struct event_base *base, int fd, short events,
+        void (*callback)(int, short, void *), void *arg,
+        const struct timeval *timeout);
+
+int event_base_set(struct event_base *, struct event *);
+
+
+int event_once(int, short, void (*)(int, short, void *), void *,
+        const struct timeval *);
+
+
+int event_loopexit(const struct timeval *);
+
+struct bufferevent *bufferevent_new(int fd,
+        evbuffercb readcb, evbuffercb writecb, everrorcb errorcb, void *cbarg);
 
 #define event_initialized(ev)		((ev)->ev_flags & EVLIST_INIT)
 

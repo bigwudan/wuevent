@@ -1,5 +1,5 @@
-test_http.out : epoll.o event.o evutil.o log.o signal.o http.o buffer.o  test_http.o
-	gcc -g epoll.o event.o evutil.o log.o signal.o http.o buffer.o  test_http.o  -o test_http.out
+test_http.out : epoll.o event.o evutil.o log.o signal.o http.o buffer.o evbuffer.o  test_http.o
+	gcc -g epoll.o event.o evutil.o log.o signal.o http.o buffer.o evbuffer.o  test_http.o  -o test_http.out
 epoll.o : epoll.c
 	gcc -c -g epoll.c -o epoll.o
 
@@ -20,6 +20,9 @@ http.o : http.c
 
 buffer.o : buffer.c
 	gcc -c -g buffer.c -o buffer.o
+
+evbuffer.o : evbuffer.c
+	gcc -c -g evbuffer.c -o evbuffer.o
 
 
 test_http.o : test_http.c
