@@ -56,6 +56,7 @@ static void evhttp_read_header(struct evhttp_connection *evcon,
 
 
 
+static inline void evhttp_send(struct evhttp_request *req, struct evbuffer *databuf);
 
 
 
@@ -239,7 +240,6 @@ evhttp_connection_done(struct evhttp_connection *evcon)
 {
 	struct evhttp_request *req = TAILQ_FIRST(&evcon->requests);
 	int con_outgoing = evcon->flags & EVHTTP_CON_OUTGOING;
-
 	if (con_outgoing) {
 		/* idle or close the connection */
 		int need_close;
@@ -282,7 +282,6 @@ evhttp_connection_done(struct evhttp_connection *evcon)
 
 	/* notify the user of the request */
 	(*req->cb)(req, req->cb_arg);
-
 	/* if this was an outgoing request, we own and it's done. so free it */
 	if (con_outgoing) {
 		evhttp_request_free(req);
@@ -490,6 +489,7 @@ evhttp_read_header(struct evhttp_connection *evcon, struct evhttp_request *req)
 	int fd = evcon->fd;
 
 	res = evhttp_parse_headers(req, evcon->input_buffer);
+
 	if (res == DATA_CORRUPTED) {
 		/* Error while reading, terminate */
 		event_debug(("%s: bad header lines on %d\n", __func__, fd));
@@ -502,6 +502,7 @@ evhttp_read_header(struct evhttp_connection *evcon, struct evhttp_request *req)
 		return;
 	}
 
+	
 	/* Done reading headers, do the real work */
 	switch (req->kind) {
 		case EVHTTP_REQUEST:
@@ -711,10 +712,10 @@ evhttp_handle_request(struct evhttp_request *req, void *arg)
 	}
 
 	if ((cb = evhttp_dispatch_callback(&http->callbacks, req)) != NULL) {
+		printf("http run...\n");
 		(*cb->cb)(req, cb->cbarg);
 		return;
 	}
-
 	/* Generic call back */
 	if (http->gencb) {
 		(*http->gencb)(req, http->gencbarg);
@@ -1545,6 +1546,15 @@ evhttp_start_read(struct evhttp_connection *evcon)
 
 
 
+void
+evhttp_send_reply(struct evhttp_request *req, int code, const char *reason,
+		struct evbuffer *databuf)
+{
+	evhttp_response_code(req, code, reason);
+
+	evhttp_send(req, databuf);
+}
+
 
 static void
 evhttp_send_done(struct evhttp_connection *evcon, void *arg)
@@ -1874,9 +1884,9 @@ evhttp_parse_request_line(struct evhttp_request *req, char *line)
 	if (line == NULL)
 		return (-1);
 	version = strsep(&line, " ");
+
 	if (line != NULL)
 		return (-1);
-
 	/* First line */
 	if (strcmp(method, "GET") == 0) {
 		req->type = EVHTTP_REQ_GET;
@@ -2002,6 +2012,8 @@ evhttp_read_firstline(struct evhttp_connection *evcon,
 	enum message_read_status res;
 
 	res = evhttp_parse_firstline(req, evcon->input_buffer);
+
+
 	if (res == DATA_CORRUPTED) {
 		/* Error while reading, terminate */
 		event_debug(("%s: bad header lines on %d\n",

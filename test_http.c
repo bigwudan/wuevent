@@ -40,7 +40,45 @@ http_errorcb(struct bufferevent *bev, short what, void *arg)
 void
 http_basic_cb(struct evhttp_request *req, void *arg)
 {
+
+	printf("req->url=%s\n", req->uri);	
+
+
     printf("run http_basic_cb..\n ");
+
+	struct evbuffer *evb = evbuffer_new();
+	int empty = evhttp_find_header(req->input_headers, "Empty") != NULL;
+	event_debug(("%s: called\n", __func__));
+	evbuffer_add_printf(evb, "This is funny");
+
+	/* For multi-line headers test */
+	{
+		const char *multi =
+			evhttp_find_header(req->input_headers,"X-multi");
+		if (multi) {
+			if (strcmp("END", multi + strlen(multi) - 3) == 0)
+				test_ok++;
+			if (evhttp_find_header(req->input_headers, "X-Last"))
+				test_ok++;
+		}
+	}
+
+	/* injecting a bad content-length */
+	if (evhttp_find_header(req->input_headers, "X-Negative"))
+		evhttp_add_header(req->output_headers,
+				"Content-Length", "-100");
+
+	/* allow sending of an empty reply */
+	evhttp_send_reply(req, HTTP_OK, "Everything is fine",
+			!empty ? evb : NULL);
+
+	evbuffer_free(evb);
+
+
+
+
+
+
 }
 
 
@@ -163,7 +201,7 @@ http_setup(short *pport, struct event_base *base)
     if(port == -1){
         exit(1);
     }
-    evhttp_set_cb(myhttp, "/test", http_basic_cb, NULL);
+    evhttp_set_cb(myhttp, "/index.php", http_basic_cb, NULL);
     *pport = port;
     return (myhttp);
 }
@@ -188,7 +226,9 @@ http_base_test(void)
 
 
     http = http_setup(&port, base);
-
+	printf("port=%d\n", port);
+    event_base_dispatch(base);
+	while(1);
     fd = http_connect("127.0.0.1", port);
 
     bev = bufferevent_new(fd, http_readcb, http_writecb,
@@ -198,7 +238,7 @@ http_base_test(void)
     bufferevent_base_set(base, bev);
 
     http_request =
-        "GET /test HTTP/1.1\r\n"
+        "GET /test2 HTTP/1.1\r\n"
         "Host: somehost\r\n"
         "Connection: close\r\n"
         "\r\n";

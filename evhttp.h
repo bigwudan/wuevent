@@ -126,7 +126,8 @@ void evhttp_set_cb(struct evhttp *, const char *,
 
 void evhttp_free(struct evhttp* http);
 
-
+void evhttp_send_reply(struct evhttp_request *req, int code,
+		const char *reason, struct evbuffer *databuf);
 
 
 #endif
