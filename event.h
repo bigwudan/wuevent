@@ -3,6 +3,8 @@
 
 #include <sys/types.h>
 #include <stdarg.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 
 #include "sys/queue.h"
 
@@ -190,6 +192,10 @@ struct ssl_bufferevent {
     int timeout_write;  /* in seconds */
 
     short enabled;  /* events that are currently enabled */
+
+	//ssl
+	SSL *ssl_fd;
+	
 };
 
 
@@ -248,6 +254,9 @@ int event_loopexit(const struct timeval *);
 
 struct bufferevent *bufferevent_new(int fd,
         evbuffercb readcb, evbuffercb writecb, everrorcb errorcb, void *cbarg);
+
+struct ssl_bufferevent *bufferevent_ssl_new(int fd,
+        evbuffercb readcb, evbuffercb writecb, everrorcb errorcb, void *cbarg, SSL *ssl_fd);
 
 void bufferevent_setcb(struct bufferevent *bufev,
         evbuffercb readcb, evbuffercb writecb, everrorcb errorcb, void *cbarg);

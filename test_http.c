@@ -11,8 +11,6 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
 
 
 
@@ -263,6 +261,10 @@ ssl_base_test(void)
 		exit(1);
 	}
 
+	struct ssl_bufferevent *bev = NULL;
+
+    bev = bufferevent_ssl_new(fd, http_readcb, http_writecb,
+            http_errorcb, NULL, ssl);
 
 
     base = event_init();

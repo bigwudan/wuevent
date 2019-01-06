@@ -276,20 +276,20 @@ bufferevent_ssl_readcb(int fd, short event, void *arg)
 
 
 static void
-bufferevent_ssl_writecd(int fd, short event, void *arg)
+bufferevent_ssl_writecb(int fd, short event, void *arg)
 {
 	return;
 }
 
 
 
-struct bufferevent *
+struct ssl_bufferevent *
 bufferevent_ssl_new(int fd, evbuffercb readcb, evbuffercb writecb,
-		everrorcb errorcb, void *cbarg)
+		everrorcb errorcb, void *cbarg, SSL *ssl_fd)
 {
-	struct bufferevent *bufev;
+	struct ssl_bufferevent *bufev;
 
-	if ((bufev = calloc(1, sizeof(struct bufferevent))) == NULL)
+	if ((bufev = calloc(1, sizeof(struct ssl_bufferevent))) == NULL)
 		return (NULL);
 
 	if ((bufev->input = evbuffer_new()) == NULL) {
@@ -301,16 +301,11 @@ bufferevent_ssl_new(int fd, evbuffercb readcb, evbuffercb writecb,
 		evbuffer_free(bufev->input);
 		free(bufev);
 		return (NULL);
-	}       
+	}
 
-	event_set(&bufev->ev_read, fd, EV_READ, bufferevent_ssl_readcb, bufev);
-	event_set(&bufev->ev_write, fd, EV_WRITE, bufferevent_ssl_writecb, bufev);
 
-	bufferevent_setcb(bufev, readcb, writecb, errorcb, cbarg);
-
-	bufev->enabled = EV_WRITE;
-
-	return (bufev);
+	
+	return NULL;
 }
 
 

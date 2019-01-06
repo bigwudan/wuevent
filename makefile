@@ -1,5 +1,5 @@
 test_http.out : epoll.o event.o evutil.o log.o signal.o http.o buffer.o evbuffer.o  test_http.o
-	gcc -g epoll.o event.o evutil.o log.o signal.o http.o buffer.o evbuffer.o  test_http.o  -o test_http.out
+	gcc  -g epoll.o event.o evutil.o log.o signal.o http.o buffer.o evbuffer.o  test_http.o  -o test_http.out -lssl -lcrypto
 epoll.o : epoll.c
 	gcc -c -g epoll.c -o epoll.o
 
@@ -26,7 +26,7 @@ evbuffer.o : evbuffer.c
 
 
 test_http.o : test_http.c
-	gcc -c -g test_http.c -o test_http.o
+	gcc -lssl -lcrypto -c -g test_http.c -o test_http.o
 clean:
 	rm -rf *.o
 	rm -rf test_http.out
