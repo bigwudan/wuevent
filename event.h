@@ -169,6 +169,30 @@ struct bufferevent {
 };
 #endif
 
+struct ssl_bufferevent {
+    struct event_base *ev_base;
+
+    struct event ev_read;
+    struct event ev_write;
+
+    struct evbuffer *input;
+    struct evbuffer *output;
+
+    struct event_watermark wm_read;
+    struct event_watermark wm_write;
+
+    evbuffercb readcb;
+    evbuffercb writecb;
+    everrorcb errorcb;
+    void *cbarg;
+
+    int timeout_read;   /* in seconds */
+    int timeout_write;  /* in seconds */
+
+    short enabled;  /* events that are currently enabled */
+};
+
+
 
 int event_base_loopexit(struct event_base *, const struct timeval *);
 

@@ -11,6 +11,9 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+
 
 
 #include "event.h"
@@ -207,6 +210,64 @@ http_setup(short *pport, struct event_base *base)
 }
 
 
+
+
+static void
+ssl_base_test(void)
+{
+	int fd;
+	int port = 8890;
+	SSL *ssl;
+
+
+	SSL_CTX *sslContext;
+	SSL_load_error_strings ();
+	SSL_library_init ();
+	sslContext = SSL_CTX_new (SSLv23_client_method ());
+
+	if (SSL_CTX_use_certificate_file(sslContext,"key/client.pem", SSL_FILETYPE_PEM) <= 0)  
+	{  
+		ERR_print_errors_fp(stdout);  
+		exit(1);  
+	}  
+
+
+	if (SSL_CTX_use_PrivateKey_file(sslContext, "key/clientkey.pem", SSL_FILETYPE_PEM) <= 0)  
+	{  
+		ERR_print_errors_fp(stdout);  
+		exit(1);  
+	}
+
+	if (!SSL_CTX_check_private_key(sslContext))  
+	{  
+		ERR_print_errors_fp(stdout);  
+		exit(1);  
+	}  
+
+
+
+	if (sslContext == NULL)
+		ERR_print_errors_fp (stderr);
+    fd = http_connect("127.0.0.1", port);
+	ssl = SSL_new (sslContext);
+	if(ssl == NULL){
+		ERR_print_errors_fp(stderr);
+		exit(1);
+	}
+	if(!SSL_set_fd(ssl, fd) ){
+		ERR_print_errors_fp(stderr);
+		exit(1);
+	}
+	if(SSL_connect(ssl) != 1){
+		ERR_print_errors_fp(stderr);
+		exit(1);
+	}
+
+
+
+    base = event_init();
+
+}
 
 
 
