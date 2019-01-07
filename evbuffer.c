@@ -271,7 +271,72 @@ bufferevent_new(int fd, evbuffercb readcb, evbuffercb writecb,
 static void
 bufferevent_ssl_readcb(int fd, short event, void *arg)
 {
-	return;
+    struct ssl_bufferevent *bufev = arg;
+    int res = 0;
+    short what = EVBUFFER_READ;
+    size_t len;
+    int howmuch = -1;
+
+    if (event == EV_TIMEOUT) {
+        what |= EVBUFFER_TIMEOUT;
+        goto error;
+    }
+
+    /*
+     *   * If we have a high watermark configured then we don't want to
+     *       * read more data than would make us reach the watermark.
+     *           */
+    if (bufev->wm_read.high != 0) {
+        howmuch = bufev->wm_read.high - EVBUFFER_LENGTH(bufev->input);
+        /* we might have lowered the watermark, stop reading */
+        if (howmuch <= 0) {
+            struct evbuffer *buf = bufev->input;
+            event_del(&bufev->ev_read);
+            evbuffer_setcb(buf,
+                    bufferevent_read_pressure_cb, bufev);
+            return;
+        }
+    }
+
+    res = evbuffer_read(bufev->input, fd, howmuch);
+    if (res == -1) {
+        if (errno == EAGAIN || errno == EINTR)
+            goto reschedule;
+        /* error case */
+        what |= EVBUFFER_ERROR;
+    } else if (res == 0) {
+        /* eof case */
+        what |= EVBUFFER_EOF;
+    }
+
+    if (res <= 0)
+        goto error;
+
+    bufferevent_add(&bufev->ev_read, bufev->timeout_read);
+
+    /* See if this callbacks meets the water marks */
+    len = EVBUFFER_LENGTH(bufev->input);
+    if (bufev->wm_read.low != 0 && len < bufev->wm_read.low)
+        return;
+    if (bufev->wm_read.high != 0 && len >= bufev->wm_read.high) {
+        struct evbuffer *buf = bufev->input;
+        event_del(&bufev->ev_read);
+
+        /* Now schedule a callback for us when the buffer changes */
+        evbuffer_setcb(buf, bufferevent_read_pressure_cb, bufev);
+    }
+
+    /* Invoke the user callback - must always be called last */
+    if (bufev->readcb != NULL)
+        (*bufev->readcb)(bufev, bufev->cbarg);
+    return;
+
+reschedule:
+    bufferevent_add(&bufev->ev_read, bufev->timeout_read);
+    return;
+
+error:
+    (*bufev->errorcb)(bufev, what, bufev->cbarg);
 }
 
 
@@ -280,6 +345,19 @@ bufferevent_ssl_writecb(int fd, short event, void *arg)
 {
 	return;
 }
+
+
+void
+bufferevent_ssl_setcb(struct ssl_bufferevent *bufev,
+        evbuffercb readcb, evbuffercb writecb, everrorcb errorcb, void *cbarg)
+{
+    bufev->readcb = NULL;
+    bufev->writecb = NULL;
+    bufev->errorcb = NULL;
+
+    bufev->cbarg = cbarg;
+}
+
 
 
 
@@ -303,6 +381,10 @@ bufferevent_ssl_new(int fd, evbuffercb readcb, evbuffercb writecb,
 		return (NULL);
 	}
 
+	event_set(&bufev->ev_read, fd, EV_READ, bufferevent_ssl_readcb, bufev);
+	event_set(&bufev->ev_write, fd, EV_WRITE, bufferevent_ssl_writecb, bufev);
+
+	bufferevent_ssl_setcb(bufev, readcb, writecb, errorcb, cbarg);
 
 	
 	return NULL;

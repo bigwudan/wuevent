@@ -140,6 +140,10 @@ typedef void (*evbuffercb)(struct bufferevent *, void *);
 typedef void (*everrorcb)(struct bufferevent *, short what, void *);
 
 
+struct ssl_bufferevent;
+typedef void (*evbuffercb_ssl)(struct ssl_bufferevent *, void *);
+typedef void (*everrorcb_ssl)(struct ssl_bufferevent *, short what, void *);
+
 struct event_watermark {
     size_t low;
     size_t high;
@@ -183,9 +187,9 @@ struct ssl_bufferevent {
     struct event_watermark wm_read;
     struct event_watermark wm_write;
 
-    evbuffercb readcb;
-    evbuffercb writecb;
-    everrorcb errorcb;
+    evbuffercb_ssl readcb;
+    evbuffercb_ssl writecb;
+    everrorcb_ssl errorcb;
     void *cbarg;
 
     int timeout_read;   /* in seconds */
