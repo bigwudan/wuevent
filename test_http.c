@@ -20,6 +20,12 @@
 #include "evhttp.h"
 #include "log.h"
 
+#define CA_FILE                "key/cacert.pem"                                                                                 
+#define CLIENT_KEY            "key/key.pem"
+#define CLIENT_CERT         "key/cert.pem"
+
+
+
 
 int called = 0;
 int test_ok;
@@ -214,7 +220,7 @@ static void
 ssl_base_test(void)
 {
 	int fd;
-	int port = 8890;
+	int port = 7838;
 	SSL *ssl;
 
     base = event_init();
@@ -224,14 +230,14 @@ ssl_base_test(void)
 	SSL_library_init ();
 	sslContext = SSL_CTX_new (SSLv23_client_method ());
 
-	if (SSL_CTX_use_certificate_file(sslContext,"key/client.pem", SSL_FILETYPE_PEM) <= 0)  
+	if (SSL_CTX_use_certificate_file(sslContext,CLIENT_CERT, SSL_FILETYPE_PEM) <= 0)  
 	{  
 		ERR_print_errors_fp(stdout);  
 		exit(1);  
 	}  
 
 
-	if (SSL_CTX_use_PrivateKey_file(sslContext, "key/clientkey.pem", SSL_FILETYPE_PEM) <= 0)  
+	if (SSL_CTX_use_PrivateKey_file(sslContext, CLIENT_KEY, SSL_FILETYPE_PEM) <= 0)  
 	{  
 		ERR_print_errors_fp(stdout);  
 		exit(1);  
@@ -262,6 +268,7 @@ ssl_base_test(void)
 		exit(1);
 	}
 
+    printf("ssl_connect\n");
 	struct ssl_bufferevent *bev = NULL;
 
     bev = bufferevent_ssl_new(fd, http_readcb, http_writecb,
@@ -339,8 +346,8 @@ http_base_test(void)
 int
 main (int argc, char **argv)
 {
-    http_base_test();
-
+    //http_base_test();
+    ssl_base_test();
 
     return (0);
 }
