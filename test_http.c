@@ -217,6 +217,7 @@ ssl_base_test(void)
 	int port = 8890;
 	SSL *ssl;
 
+    base = event_init();
 
 	SSL_CTX *sslContext;
 	SSL_load_error_strings ();
@@ -277,9 +278,8 @@ ssl_base_test(void)
 
     bufferevent_ssl_write(bev, http_request, strlen(http_request));
 
+    event_base_dispatch(base);
 
-
-    base = event_init();
 
 }
 
