@@ -67,22 +67,6 @@ bufferevent_free(struct bufferevent *bufev)
 
 
 
-int
-bufferevent_write(struct bufferevent *bufev, const void *data, size_t size)
-{
-    int res;
-
-    res = evbuffer_add(bufev->output, data, size);
-
-    if (res == -1)
-        return (res);
-
-    /* If everything is okay, we need to schedule a write */
-    if (size > 0 && (bufev->enabled & EV_WRITE))
-        bufferevent_add(&bufev->ev_write, bufev->timeout_write);
-
-    return (res);
-}
 
 
 
@@ -157,6 +141,43 @@ reschedule:
 error:
     (*bufev->errorcb)(bufev, what, bufev->cbarg);
 }
+
+
+int
+bufferevent_write(struct bufferevent *bufev, const void *data, size_t size)
+{
+    int res;
+
+    res = evbuffer_add(bufev->output, data, size);
+
+    if (res == -1)
+        return (res);
+
+    /* If everything is okay, we need to schedule a write */
+    if (size > 0 && (bufev->enabled & EV_WRITE))
+        bufferevent_add(&bufev->ev_write, bufev->timeout_write);
+
+    return (res);
+}
+
+
+int
+bufferevent_ssl_write(struct ssl_bufferevent *bufev, const void *data, size_t size)
+{
+    int res;
+
+    res = evbuffer_add(bufev->output, data, size);
+
+    if (res == -1)
+        return (res);
+
+    /* If everything is okay, we need to schedule a write */
+    if (size > 0 && (bufev->enabled & EV_WRITE))
+        bufferevent_add(&bufev->ev_write, bufev->timeout_write);
+
+    return (res);
+}
+
 
 
 
@@ -485,4 +506,18 @@ bufferevent_base_set(struct event_base *base, struct bufferevent *bufev)
 }
 
 
+int
+bufferevent_ssl_base_set(struct event_base *base, struct ssl_bufferevent *bufev)
+{
+    int res;
+
+    bufev->ev_base = base;
+
+    res = event_base_set(base, &bufev->ev_read);
+    if (res == -1)
+        return (res);
+
+    res = event_base_set(base, &bufev->ev_write);
+    return (res);
+}
 

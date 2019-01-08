@@ -266,6 +266,18 @@ ssl_base_test(void)
     bev = bufferevent_ssl_new(fd, http_readcb, http_writecb,
             http_errorcb, NULL, ssl);
 
+    bufferevent_ssl_base_set(base, bev);
+
+
+    char *http_request =
+        "GET /test HTTP/1.1\r\n"
+        "Host: somehost\r\n"
+        "Connection: close\r\n"
+        "\r\n";
+
+    bufferevent_ssl_write(bev, http_request, strlen(http_request));
+
+
 
     base = event_init();
 

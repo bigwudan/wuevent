@@ -237,10 +237,12 @@ int bufferevent_disable(struct bufferevent *bufev, short event);
 
 int bufferevent_base_set(struct event_base *base, struct bufferevent *bufev);
 
+int bufferevent_ssl_base_set(struct event_base *base, struct ssl_bufferevent *bufev);
 int bufferevent_write(struct bufferevent *bufev,
             const void *data, size_t size);
 
 
+int bufferevent_ssl_write(struct ssl_bufferevent *bufev, const void *data, size_t size);
 
 int event_base_once(struct event_base *base, int fd, short events,
         void (*callback)(int, short, void *), void *arg,

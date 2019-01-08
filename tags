@@ -38,13 +38,13 @@ ERR_FORMAT	http.c	1249;"	d	file:
 ERR_FORMAT	http.c	1268;"	d	file:
 ERR_FORMAT	http.c	725;"	d	file:
 ERR_FORMAT	http.c	744;"	d	file:
-EVBUFFER_DATA	event.h	276;"	d
+EVBUFFER_DATA	event.h	278;"	d
 EVBUFFER_EOF	event.h	118;"	d
 EVBUFFER_ERROR	event.h	119;"	d
-EVBUFFER_INPUT	event.h	277;"	d
-EVBUFFER_LENGTH	event.h	275;"	d
+EVBUFFER_INPUT	event.h	279;"	d
+EVBUFFER_LENGTH	event.h	277;"	d
 EVBUFFER_MAX_READ	buffer.c	298;"	d	file:
-EVBUFFER_OUTPUT	event.h	278;"	d
+EVBUFFER_OUTPUT	event.h	280;"	d
 EVBUFFER_READ	event.h	116;"	d
 EVBUFFER_TIMEOUT	event.h	120;"	d
 EVBUFFER_WRITE	event.h	117;"	d
@@ -221,6 +221,7 @@ bufferevent_new	evbuffer.c	/^bufferevent_new(int fd, evbuffercb readcb, evbuffer
 bufferevent_read_pressure_cb	evbuffer.c	/^bufferevent_read_pressure_cb(struct evbuffer *buf, size_t old, size_t now,$/;"	f
 bufferevent_readcb	evbuffer.c	/^bufferevent_readcb(int fd, short event, void *arg)$/;"	f	file:
 bufferevent_setcb	evbuffer.c	/^bufferevent_setcb(struct bufferevent *bufev,$/;"	f
+bufferevent_ssl_base_set	evbuffer.c	/^bufferevent_ssl_base_set(struct event_base *base, struct ssl_bufferevent *bufev)$/;"	f
 bufferevent_ssl_new	evbuffer.c	/^bufferevent_ssl_new(int fd, evbuffercb readcb, evbuffercb writecb,$/;"	f
 bufferevent_ssl_readcb	evbuffer.c	/^bufferevent_ssl_readcb(int fd, short event, void *arg)$/;"	f	file:
 bufferevent_ssl_setcb	evbuffer.c	/^bufferevent_ssl_setcb(struct ssl_bufferevent *bufev,$/;"	f
@@ -342,7 +343,7 @@ event_errx	log.c	/^event_errx(int eval, const char *fmt, ...)$/;"	f
 event_gotterm	event-internal.h	/^    int event_gotterm;      \/* Set to terminate loop *\/$/;"	m	struct:event_base
 event_haveevents	event.c	/^event_haveevents(struct event_base *base)$/;"	f
 event_init	event.c	/^event_init(void)$/;"	f
-event_initialized	event.h	273;"	d
+event_initialized	event.h	275;"	d
 event_loop	event.c	/^event_loop(int flags)$/;"	f
 event_loopexit	event.c	/^event_loopexit(const struct timeval *tv)$/;"	f
 event_loopexit_cb	event.c	/^event_loopexit_cb(int fd, short what, void *arg)$/;"	f	file:
