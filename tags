@@ -268,7 +268,7 @@ epoll_recalc	epoll.c	/^epoll_recalc(struct event_base *base, void *arg, int max)
 epollop	epoll.c	/^struct epollop {$/;"	s	file:
 epollops	epoll.c	/^const struct eventop epollops = {$/;"	v	typeref:struct:eventop
 errorcb	event.h	/^    everrorcb errorcb;$/;"	m	struct:bufferevent
-errorcb	event.h	/^    everrorcb errorcb;$/;"	m	struct:ssl_bufferevent
+errorcb	event.h	/^    everrorcb_ssl errorcb;$/;"	m	struct:ssl_bufferevent
 ev	event.c	/^    struct event ev;$/;"	m	struct:event_once	typeref:struct:event_once::event	file:
 ev	http-internal.h	/^    struct event ev;$/;"	m	struct:evhttp_connection	typeref:struct:evhttp_connection::event
 ev	test_time.c	/^struct event *ev[NEVENT];$/;"	v	typeref:struct:event
@@ -313,6 +313,7 @@ evbuffer_read	buffer.c	/^evbuffer_read(struct evbuffer *buf, int fd, int howmuch
 evbuffer_readline	buffer.c	/^evbuffer_readline(struct evbuffer *buffer)$/;"	f
 evbuffer_remove	buffer.c	/^evbuffer_remove(struct evbuffer *buf, void *data, size_t datlen)$/;"	f
 evbuffer_setcb	buffer.c	/^void evbuffer_setcb(struct evbuffer *buffer,$/;"	f
+evbuffer_ssl_write	buffer.c	/^evbuffer_ssl_write(struct evbuffer *buffer, SSL *fd)$/;"	f
 evbuffer_write	buffer.c	/^evbuffer_write(struct evbuffer *buffer, int fd)$/;"	f
 evbuffercb	event.h	/^typedef void (*evbuffercb)(struct bufferevent *, void *);$/;"	t
 evbuffercb_ssl	event.h	/^typedef void (*evbuffercb_ssl)(struct ssl_bufferevent *, void *);$/;"	t

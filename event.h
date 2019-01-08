@@ -224,6 +224,7 @@ int evbuffer_add_buffer(struct evbuffer *, struct evbuffer *);
 int evbuffer_write(struct evbuffer *, int);
 int evbuffer_read(struct evbuffer *, int, int);
 
+int evbuffer_ssl_write(struct evbuffer *buffer, SSL *fd);
 char *evbuffer_readline(struct evbuffer *);
 
 u_char *evbuffer_find(struct evbuffer *, const u_char *, size_t);

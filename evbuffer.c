@@ -343,7 +343,48 @@ error:
 static void
 bufferevent_ssl_writecb(int fd, short event, void *arg)
 {
-	return;
+    struct ssl_bufferevent *bufev = arg;
+    int res = 0;
+    short what = EVBUFFER_WRITE;
+
+    if (event == EV_TIMEOUT) {
+        what |= EVBUFFER_TIMEOUT;
+        goto error;
+    }
+
+    if (EVBUFFER_LENGTH(bufev->output)) {
+        res = evbuffer_ssl_write(bufev->output, bufev->ssl_fd);
+        if (res == -1) {
+            if (errno == EAGAIN ||
+                    errno == EINTR ||
+                    errno == EINPROGRESS)
+                goto reschedule;
+            what |= EVBUFFER_ERROR;
+
+        } else if (res == 0) {
+            what |= EVBUFFER_EOF;
+        }
+        if (res <= 0)
+            goto error;
+    }
+
+    if (EVBUFFER_LENGTH(bufev->output) != 0)
+        bufferevent_add(&bufev->ev_write, bufev->timeout_write);
+
+    if (bufev->writecb != NULL &&
+            EVBUFFER_LENGTH(bufev->output) <= bufev->wm_write.low)
+        (*bufev->writecb)(bufev, bufev->cbarg);
+
+    return;
+
+reschedule:
+    if (EVBUFFER_LENGTH(bufev->output) != 0)
+        bufferevent_add(&bufev->ev_write, bufev->timeout_write);
+    return;
+
+error:
+    (*bufev->errorcb)(bufev, what, bufev->cbarg);
+
 }
 
 
