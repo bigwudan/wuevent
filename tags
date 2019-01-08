@@ -5,6 +5,7 @@
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
 ALL_DATA_READ	http-internal.h	/^	ALL_DATA_READ = 1,$/;"	e	enum:message_read_status
+CA_FILE	test_http.c	23;"	d	file:
 CIRCLEQ_EMPTY	sys/queue.h	401;"	d
 CIRCLEQ_END	sys/queue.h	398;"	d
 CIRCLEQ_ENTRY	sys/queue.h	387;"	d
@@ -23,6 +24,8 @@ CIRCLEQ_NEXT	sys/queue.h	399;"	d
 CIRCLEQ_PREV	sys/queue.h	400;"	d
 CIRCLEQ_REMOVE	sys/queue.h	462;"	d
 CIRCLEQ_REPLACE	sys/queue.h	475;"	d
+CLIENT_CERT	test_http.c	25;"	d	file:
+CLIENT_KEY	test_http.c	24;"	d	file:
 CLOCK_PROF	sys/_libevent_time.h	156;"	d
 CLOCK_REALTIME	sys/_libevent_time.h	154;"	d
 CLOCK_VIRTUAL	sys/_libevent_time.h	155;"	d
@@ -38,13 +41,13 @@ ERR_FORMAT	http.c	1249;"	d	file:
 ERR_FORMAT	http.c	1268;"	d	file:
 ERR_FORMAT	http.c	725;"	d	file:
 ERR_FORMAT	http.c	744;"	d	file:
-EVBUFFER_DATA	event.h	278;"	d
+EVBUFFER_DATA	event.h	279;"	d
 EVBUFFER_EOF	event.h	118;"	d
 EVBUFFER_ERROR	event.h	119;"	d
-EVBUFFER_INPUT	event.h	279;"	d
-EVBUFFER_LENGTH	event.h	277;"	d
+EVBUFFER_INPUT	event.h	280;"	d
+EVBUFFER_LENGTH	event.h	278;"	d
 EVBUFFER_MAX_READ	buffer.c	298;"	d	file:
-EVBUFFER_OUTPUT	event.h	280;"	d
+EVBUFFER_OUTPUT	event.h	281;"	d
 EVBUFFER_READ	event.h	116;"	d
 EVBUFFER_TIMEOUT	event.h	120;"	d
 EVBUFFER_WRITE	event.h	117;"	d
@@ -129,7 +132,7 @@ MAX_NEVENTS	epoll.c	68;"	d	file:
 MIN	http.c	25;"	d	file:
 MORE_DATA_EXPECTED	http-internal.h	/^	MORE_DATA_EXPECTED = 0,$/;"	e	enum:message_read_status
 NEVENT	test_time.c	10;"	d	file:
-NI_MAXSERV	test_http.c	142;"	d	file:
+NI_MAXSERV	test_http.c	148;"	d	file:
 REQUEST_CANCELED	http-internal.h	/^	REQUEST_CANCELED = -2$/;"	e	enum:message_read_status
 SHUT_WR	test_event.c	45;"	d	file:
 SHUT_WR	test_main.c	45;"	d	file:
@@ -225,6 +228,7 @@ bufferevent_ssl_base_set	evbuffer.c	/^bufferevent_ssl_base_set(struct event_base
 bufferevent_ssl_new	evbuffer.c	/^bufferevent_ssl_new(int fd, evbuffercb readcb, evbuffercb writecb,$/;"	f
 bufferevent_ssl_readcb	evbuffer.c	/^bufferevent_ssl_readcb(int fd, short event, void *arg)$/;"	f	file:
 bufferevent_ssl_setcb	evbuffer.c	/^bufferevent_ssl_setcb(struct ssl_bufferevent *bufev,$/;"	f
+bufferevent_ssl_write	evbuffer.c	/^bufferevent_ssl_write(struct ssl_bufferevent *bufev, const void *data, size_t size)$/;"	f
 bufferevent_ssl_writecb	evbuffer.c	/^bufferevent_ssl_writecb(int fd, short event, void *arg)$/;"	f	file:
 bufferevent_write	evbuffer.c	/^bufferevent_write(struct bufferevent *bufev, const void *data, size_t size)$/;"	f
 bufferevent_writecb	evbuffer.c	/^bufferevent_writecb(int fd, short event, void *arg)$/;"	f	file:
@@ -343,7 +347,7 @@ event_errx	log.c	/^event_errx(int eval, const char *fmt, ...)$/;"	f
 event_gotterm	event-internal.h	/^    int event_gotterm;      \/* Set to terminate loop *\/$/;"	m	struct:event_base
 event_haveevents	event.c	/^event_haveevents(struct event_base *base)$/;"	f
 event_init	event.c	/^event_init(void)$/;"	f
-event_initialized	event.h	275;"	d
+event_initialized	event.h	276;"	d
 event_loop	event.c	/^event_loop(int flags)$/;"	f
 event_loopexit	event.c	/^event_loopexit(const struct timeval *tv)$/;"	f
 event_loopexit_cb	event.c	/^event_loopexit_cb(int fd, short what, void *arg)$/;"	f	file:

@@ -292,6 +292,7 @@ bufferevent_new(int fd, evbuffercb readcb, evbuffercb writecb,
 static void
 bufferevent_ssl_readcb(int fd, short event, void *arg)
 {
+    printf("read \n");
     struct ssl_bufferevent *bufev = arg;
     int res = 0;
     short what = EVBUFFER_READ;
@@ -364,6 +365,7 @@ error:
 static void
 bufferevent_ssl_writecb(int fd, short event, void *arg)
 {
+    printf("%s\n", __func__);
     struct ssl_bufferevent *bufev = arg;
     int res = 0;
     short what = EVBUFFER_WRITE;
@@ -442,14 +444,12 @@ bufferevent_ssl_new(int fd, evbuffercb readcb, evbuffercb writecb,
 		free(bufev);
 		return (NULL);
 	}
+        
 
 	event_set(&bufev->ev_read, fd, EV_READ, bufferevent_ssl_readcb, bufev);
 	event_set(&bufev->ev_write, fd, EV_WRITE, bufferevent_ssl_writecb, bufev);
-
 	bufferevent_ssl_setcb(bufev, readcb, writecb, errorcb, cbarg);
-
-	
-	return NULL;
+	return bufev;
 }
 
 

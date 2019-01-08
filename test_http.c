@@ -96,6 +96,7 @@ http_writecb(struct bufferevent *bev, void *arg)
         /* enable reading of the reply */
         bufferevent_enable(bev, EV_READ);
         test_ok++;
+        printf("%s\n",__func__);
     }
 }
 
@@ -254,6 +255,7 @@ ssl_base_test(void)
 	if (sslContext == NULL)
 		ERR_print_errors_fp (stderr);
     fd = http_connect("127.0.0.1", port);
+    printf("connect ok \n");
 	ssl = SSL_new (sslContext);
 	if(ssl == NULL){
 		ERR_print_errors_fp(stderr);
@@ -273,6 +275,11 @@ ssl_base_test(void)
 
     bev = bufferevent_ssl_new(fd, http_readcb, http_writecb,
             http_errorcb, NULL, ssl);
+    
+    if(!bev){
+        printf("error bev =%p\n",bev);
+        exit(1);
+    }
 
     bufferevent_ssl_base_set(base, bev);
 
