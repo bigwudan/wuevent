@@ -22,8 +22,10 @@
 #include "log.h"
 
 #define CA_FILE                "key/cacert.pem"                                                                                 
-#define CLIENT_KEY            "key/key.pem"
-#define CLIENT_CERT         "key/cert.pem"
+#define CLIENT_KEY      "key1/clientkey.pem"
+#define CLIENT_CERT     "key1/client.pem"
+
+
 
 
 
@@ -247,10 +249,10 @@ http_errorcb_ssl(struct ssl_bufferevent *bev, short what, void *arg)
 
 
 static void
-ssl_base_test(void)
+ssl_base_test(char *pchar)
 {
 	int fd;
-	int port = 7838;
+	int port = 8743;
 	SSL *ssl;
 
     base = event_init();
@@ -280,11 +282,11 @@ ssl_base_test(void)
 		exit(1);  
 	}  
 
-
+    char *addr = "180.101.147.89";
 
 	if (sslContext == NULL)
 		ERR_print_errors_fp (stderr);
-    fd = http_connect("127.0.0.1", port);
+    fd = http_connect(addr, port);
     printf("connect ok \n");
 	ssl = SSL_new (sslContext);
 	if(ssl == NULL){
@@ -320,7 +322,7 @@ ssl_base_test(void)
         "Connection: close\r\n"
         "\r\n";
 
-    bufferevent_ssl_write(bev, http_request, strlen(http_request));
+    bufferevent_ssl_write(bev, pchar, strlen(pchar));
     printf("dispatch ...\n");
     event_base_dispatch(base);
 
@@ -379,12 +381,37 @@ http_base_test(void)
 }
 
 
+char *
+get_ssl_request()
+{
+
+    char *p_head1 = "/iocm/app/sec/v1.1.0/login/";
+    char *p_head2 = "180.101.147.89:8743";
+    int bodynum = 70;
+    char *p_appid = "Xqwyn4lJPuLIPYqHBH8UN_zK8fsa";
+    char *p_appkey = "XIcGewffJE8LpfMWksO4Vipvfsga";
+    ssize_t size_len = 0;
+    char *p_buff = (char *)calloc(sizeof(char), 300);
+    sprintf(
+            p_buff,
+            "POST %s HTTP/1.1\nHost: %s\nContent-Type:application/x-www-form-urlencoded\nContent-Length: %d\r\n\r\nappId=%s&secret=%s",
+            p_head1,
+            p_head2,
+            bodynum,
+            p_appid,
+            p_appkey
+           );
+    return p_buff;
+}
+
 
 int
 main (int argc, char **argv)
 {
-    //http_base_test();
-    ssl_base_test();
+    char *pRequest = NULL;
+    pRequest=get_ssl_request();
+    //printf("%s\n",pRequest);
+    ssl_base_test(pRequest);
 
     return (0);
 }

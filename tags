@@ -41,13 +41,13 @@ ERR_FORMAT	http.c	1249;"	d	file:
 ERR_FORMAT	http.c	1268;"	d	file:
 ERR_FORMAT	http.c	725;"	d	file:
 ERR_FORMAT	http.c	744;"	d	file:
-EVBUFFER_DATA	event.h	280;"	d
+EVBUFFER_DATA	event.h	281;"	d
 EVBUFFER_EOF	event.h	118;"	d
 EVBUFFER_ERROR	event.h	119;"	d
-EVBUFFER_INPUT	event.h	281;"	d
-EVBUFFER_LENGTH	event.h	279;"	d
+EVBUFFER_INPUT	event.h	282;"	d
+EVBUFFER_LENGTH	event.h	280;"	d
 EVBUFFER_MAX_READ	buffer.c	298;"	d	file:
-EVBUFFER_OUTPUT	event.h	282;"	d
+EVBUFFER_OUTPUT	event.h	283;"	d
 EVBUFFER_READ	event.h	116;"	d
 EVBUFFER_TIMEOUT	event.h	120;"	d
 EVBUFFER_WRITE	event.h	117;"	d
@@ -319,6 +319,7 @@ evbuffer_read	buffer.c	/^evbuffer_read(struct evbuffer *buf, int fd, int howmuch
 evbuffer_readline	buffer.c	/^evbuffer_readline(struct evbuffer *buffer)$/;"	f
 evbuffer_remove	buffer.c	/^evbuffer_remove(struct evbuffer *buf, void *data, size_t datlen)$/;"	f
 evbuffer_setcb	buffer.c	/^void evbuffer_setcb(struct evbuffer *buffer,$/;"	f
+evbuffer_ssl_read	buffer.c	/^evbuffer_ssl_read(struct evbuffer *buf, int fd, int howmuch, SSL *ssl_fd)$/;"	f
 evbuffer_ssl_write	buffer.c	/^evbuffer_ssl_write(struct evbuffer *buffer, SSL *fd)$/;"	f
 evbuffer_write	buffer.c	/^evbuffer_write(struct evbuffer *buffer, int fd)$/;"	f
 evbuffercb	event.h	/^typedef void (*evbuffercb)(struct bufferevent *, void *);$/;"	t
@@ -348,7 +349,7 @@ event_errx	log.c	/^event_errx(int eval, const char *fmt, ...)$/;"	f
 event_gotterm	event-internal.h	/^    int event_gotterm;      \/* Set to terminate loop *\/$/;"	m	struct:event_base
 event_haveevents	event.c	/^event_haveevents(struct event_base *base)$/;"	f
 event_init	event.c	/^event_init(void)$/;"	f
-event_initialized	event.h	277;"	d
+event_initialized	event.h	278;"	d
 event_loop	event.c	/^event_loop(int flags)$/;"	f
 event_loopexit	event.c	/^event_loopexit(const struct timeval *tv)$/;"	f
 event_loopexit_cb	event.c	/^event_loopexit_cb(int fd, short what, void *arg)$/;"	f	file:
@@ -489,6 +490,7 @@ flags	evhttp.h	/^	int flags;$/;"	m	struct:evhttp_request
 flags	http-internal.h	/^    int flags;$/;"	m	struct:evhttp_connection
 gencb	http-internal.h	/^    void (*gencb)(struct evhttp_request *req, void *);$/;"	m	struct:evhttp
 gencbarg	http-internal.h	/^    void *gencbarg;$/;"	m	struct:evhttp
+get_ssl_request	test_http.c	/^get_ssl_request()$/;"	f
 gettime	event.c	/^gettime(struct event_base *base, struct timeval *tp)$/;"	f	file:
 high	event.h	/^    size_t high;$/;"	m	struct:event_watermark
 html_replace	http.c	/^html_replace(char ch, char *buf)$/;"	f	file:
@@ -582,7 +584,7 @@ sig	event-internal.h	/^    struct evsignal_info sig;$/;"	m	struct:event_base	typ
 signal_cb	test_signal.c	/^signal_cb(int fd, short event, void *arg)$/;"	f	file:
 socket_connect	http.c	/^socket_connect(int fd, const char *address, unsigned short port)$/;"	f	file:
 sockets	http-internal.h	/^    TAILQ_HEAD(boundq, evhttp_bound_socket) sockets;$/;"	m	struct:evhttp
-ssl_base_test	test_http.c	/^ssl_base_test(void)$/;"	f	file:
+ssl_base_test	test_http.c	/^ssl_base_test(char *pchar)$/;"	f	file:
 ssl_bufferevent	event.h	/^struct ssl_bufferevent {$/;"	s
 ssl_fd	event.h	/^	SSL *ssl_fd;$/;"	m	struct:ssl_bufferevent
 state	http-internal.h	/^    enum evhttp_connection_state state;$/;"	m	struct:evhttp_connection	typeref:enum:evhttp_connection::evhttp_connection_state
