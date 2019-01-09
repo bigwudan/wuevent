@@ -382,10 +382,6 @@ evbuffer_ssl_read(struct evbuffer *buf, int fd, int howmuch, SSL *ssl_fd)
     p = buf->buffer + buf->off;
 
     n = SSL_read(ssl_fd, p, howmuch);
-    
-    printf("p=%s\n", p);
-
-
     if (n == -1)
         return (-1);
     if (n == 0)

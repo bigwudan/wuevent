@@ -222,6 +222,10 @@ http_setup(short *pport, struct event_base *base)
     static void
 http_readcb_ssl(struct ssl_bufferevent *bev, void *arg)
 {
+
+    printf("toke_buf=%s\n",bev->input->buffer); 
+
+
     printf("run %s\n", __func__);
 }
 
@@ -249,7 +253,7 @@ http_errorcb_ssl(struct ssl_bufferevent *bev, short what, void *arg)
 
 
 static void
-ssl_base_test(char *pchar)
+ssl_client_test(char *pchar)
 {
 	int fd;
 	int port = 8743;
@@ -411,7 +415,7 @@ main (int argc, char **argv)
     char *pRequest = NULL;
     pRequest=get_ssl_request();
     //printf("%s\n",pRequest);
-    ssl_base_test(pRequest);
+    ssl_client_test(pRequest);
 
     return (0);
 }

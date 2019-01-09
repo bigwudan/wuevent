@@ -132,7 +132,7 @@ MAX_NEVENTS	epoll.c	68;"	d	file:
 MIN	http.c	25;"	d	file:
 MORE_DATA_EXPECTED	http-internal.h	/^	MORE_DATA_EXPECTED = 0,$/;"	e	enum:message_read_status
 NEVENT	test_time.c	10;"	d	file:
-NI_MAXSERV	test_http.c	150;"	d	file:
+NI_MAXSERV	test_http.c	152;"	d	file:
 REQUEST_CANCELED	http-internal.h	/^	REQUEST_CANCELED = -2$/;"	e	enum:message_read_status
 SHUT_WR	test_event.c	45;"	d	file:
 SHUT_WR	test_main.c	45;"	d	file:
@@ -584,8 +584,8 @@ sig	event-internal.h	/^    struct evsignal_info sig;$/;"	m	struct:event_base	typ
 signal_cb	test_signal.c	/^signal_cb(int fd, short event, void *arg)$/;"	f	file:
 socket_connect	http.c	/^socket_connect(int fd, const char *address, unsigned short port)$/;"	f	file:
 sockets	http-internal.h	/^    TAILQ_HEAD(boundq, evhttp_bound_socket) sockets;$/;"	m	struct:evhttp
-ssl_base_test	test_http.c	/^ssl_base_test(char *pchar)$/;"	f	file:
 ssl_bufferevent	event.h	/^struct ssl_bufferevent {$/;"	s
+ssl_client_test	test_http.c	/^ssl_client_test(char *pchar)$/;"	f	file:
 ssl_fd	event.h	/^	SSL *ssl_fd;$/;"	m	struct:ssl_bufferevent
 state	http-internal.h	/^    enum evhttp_connection_state state;$/;"	m	struct:evhttp_connection	typeref:enum:evhttp_connection::evhttp_connection_state
 stathz	sys/_libevent_time.h	/^	int	stathz;		\/* statistics clock frequency *\/$/;"	m	struct:clockinfo
