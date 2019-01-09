@@ -203,6 +203,7 @@ struct ssl_bufferevent {
 };
 
 
+int bufferevent_ssl_enable(struct ssl_bufferevent *bufev, short event);
 
 int event_base_loopexit(struct event_base *, const struct timeval *);
 
@@ -263,7 +264,7 @@ struct bufferevent *bufferevent_new(int fd,
         evbuffercb readcb, evbuffercb writecb, everrorcb errorcb, void *cbarg);
 
 struct ssl_bufferevent *bufferevent_ssl_new(int fd,
-        evbuffercb readcb, evbuffercb writecb, everrorcb errorcb, void *cbarg, SSL *ssl_fd);
+        evbuffercb_ssl readcb, evbuffercb_ssl writecb, everrorcb_ssl errorcb, void *cbarg, SSL *ssl_fd);
 
 void bufferevent_setcb(struct bufferevent *bufev,
         evbuffercb readcb, evbuffercb writecb, everrorcb errorcb, void *cbarg);

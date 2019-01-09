@@ -292,7 +292,7 @@ bufferevent_new(int fd, evbuffercb readcb, evbuffercb writecb,
 static void
 bufferevent_ssl_readcb(int fd, short event, void *arg)
 {
-    printf("read \n");
+    printf("ssl read \n");
     struct ssl_bufferevent *bufev = arg;
     int res = 0;
     short what = EVBUFFER_READ;
@@ -365,7 +365,7 @@ error:
 static void
 bufferevent_ssl_writecb(int fd, short event, void *arg)
 {
-    printf("%s\n", __func__);
+    printf("ssl_write run...\n");
     struct ssl_bufferevent *bufev = arg;
     int res = 0;
     short what = EVBUFFER_WRITE;
@@ -394,6 +394,9 @@ bufferevent_ssl_writecb(int fd, short event, void *arg)
     if (EVBUFFER_LENGTH(bufev->output) != 0)
         bufferevent_add(&bufev->ev_write, bufev->timeout_write);
 
+    printf("fun:%s line:%d\n", __func__, __LINE__);    
+
+
     if (bufev->writecb != NULL &&
             EVBUFFER_LENGTH(bufev->output) <= bufev->wm_write.low)
         (*bufev->writecb)(bufev, bufev->cbarg);
@@ -413,11 +416,11 @@ error:
 
 void
 bufferevent_ssl_setcb(struct ssl_bufferevent *bufev,
-        evbuffercb readcb, evbuffercb writecb, everrorcb errorcb, void *cbarg)
+        evbuffercb_ssl readcb, evbuffercb_ssl writecb, everrorcb_ssl errorcb, void *cbarg)
 {
-    bufev->readcb = NULL;
-    bufev->writecb = NULL;
-    bufev->errorcb = NULL;
+    bufev->readcb = readcb;
+    bufev->writecb = writecb;
+    bufev->errorcb = errorcb;
 
     bufev->cbarg = cbarg;
 }
@@ -426,27 +429,22 @@ bufferevent_ssl_setcb(struct ssl_bufferevent *bufev,
 
 
 struct ssl_bufferevent *
-bufferevent_ssl_new(int fd, evbuffercb readcb, evbuffercb writecb,
-		everrorcb errorcb, void *cbarg, SSL *ssl_fd)
+bufferevent_ssl_new(int fd, evbuffercb_ssl readcb, evbuffercb_ssl writecb,
+		everrorcb_ssl errorcb, void *cbarg, SSL *ssl_fd)
 {
 	struct ssl_bufferevent *bufev;
-
 	if ((bufev = calloc(1, sizeof(struct ssl_bufferevent))) == NULL)
 		return (NULL);
-
 	if ((bufev->input = evbuffer_new()) == NULL) {
 		free(bufev);
 		return (NULL);
 	}
-
 	if ((bufev->output = evbuffer_new()) == NULL) {
 		evbuffer_free(bufev->input);
 		free(bufev);
 		return (NULL);
 	}
-        
     bufev->ssl_fd = ssl_fd;
-
 	event_set(&bufev->ev_read, fd, EV_READ, bufferevent_ssl_readcb, bufev);
 	event_set(&bufev->ev_write, fd, EV_WRITE, bufferevent_ssl_writecb, bufev);
 	bufferevent_ssl_setcb(bufev, readcb, writecb, errorcb, cbarg);
@@ -456,6 +454,21 @@ bufferevent_ssl_new(int fd, evbuffercb readcb, evbuffercb writecb,
 
 
 
+int
+bufferevent_ssl_enable(struct ssl_bufferevent *bufev, short event)
+{
+    if (event & EV_READ) {
+        if (bufferevent_add(&bufev->ev_read, bufev->timeout_read) == -1)
+            return (-1);
+    }
+    if (event & EV_WRITE) {
+        if (bufferevent_add(&bufev->ev_write, bufev->timeout_write) == -1)
+            return (-1);
+    }
+
+    bufev->enabled |= event;
+    return (0);
+}
 
 
 

@@ -93,11 +93,11 @@ http_basic_cb(struct evhttp_request *req, void *arg)
 static void
 http_writecb(struct bufferevent *bev, void *arg)
 {
+    printf("%s\n",__func__);
     if (EVBUFFER_LENGTH(bev->output) == 0) {
         /* enable reading of the reply */
         bufferevent_enable(bev, EV_READ);
         test_ok++;
-        printf("%s\n",__func__);
     }
 }
 
@@ -217,6 +217,36 @@ http_setup(short *pport, struct event_base *base)
 
 
 
+    static void
+http_readcb_ssl(struct ssl_bufferevent *bev, void *arg)
+{
+    printf("run %s\n", __func__);
+}
+
+    static void
+http_writecb_ssl(struct ssl_bufferevent *bev, void *arg)
+{
+    printf("run %s\n", __func__);
+
+    if (EVBUFFER_LENGTH(bev->output) == 0) {
+        /* enable reading of the reply */
+        bufferevent_ssl_enable(bev, EV_READ);
+        test_ok++;
+    }
+
+}
+
+    static void
+http_errorcb_ssl(struct ssl_bufferevent *bev, short what, void *arg)
+{
+    printf("run %s\n", __func__);
+    test_ok = -2;
+    event_loopexit(NULL);
+}
+  
+
+
+
 
 static void
 ssl_base_test(void)
@@ -275,8 +305,8 @@ ssl_base_test(void)
     printf("ssl_connect\n");
 	struct ssl_bufferevent *bev = NULL;
 
-    bev = bufferevent_ssl_new(fd, http_readcb, http_writecb,
-            http_errorcb, NULL, ssl);
+    bev = bufferevent_ssl_new(fd, http_readcb_ssl, http_writecb_ssl,
+            http_errorcb_ssl, NULL, ssl);
     
     if(!bev){
         printf("error bev =%p\n",bev);
