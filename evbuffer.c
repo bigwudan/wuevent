@@ -320,7 +320,7 @@ bufferevent_ssl_readcb(int fd, short event, void *arg)
         }
     }
 
-    res = evbuffer_read(bufev->input, fd, howmuch);
+    res = evbuffer_ssl_read(bufev->input, fd, howmuch, bufev->ssl_fd);
     if (res == -1) {
         if (errno == EAGAIN || errno == EINTR)
             goto reschedule;
@@ -365,7 +365,6 @@ error:
 static void
 bufferevent_ssl_writecb(int fd, short event, void *arg)
 {
-    printf("ssl_write run...\n");
     struct ssl_bufferevent *bufev = arg;
     int res = 0;
     short what = EVBUFFER_WRITE;
@@ -393,9 +392,6 @@ bufferevent_ssl_writecb(int fd, short event, void *arg)
 
     if (EVBUFFER_LENGTH(bufev->output) != 0)
         bufferevent_add(&bufev->ev_write, bufev->timeout_write);
-
-    printf("fun:%s line:%d\n", __func__, __LINE__);    
-
 
     if (bufev->writecb != NULL &&
             EVBUFFER_LENGTH(bufev->output) <= bufev->wm_write.low)

@@ -226,8 +226,6 @@ http_readcb_ssl(struct ssl_bufferevent *bev, void *arg)
     static void
 http_writecb_ssl(struct ssl_bufferevent *bev, void *arg)
 {
-    printf("run %s\n", __func__);
-
     if (EVBUFFER_LENGTH(bev->output) == 0) {
         /* enable reading of the reply */
         bufferevent_ssl_enable(bev, EV_READ);

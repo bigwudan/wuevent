@@ -355,6 +355,57 @@ evbuffer_read(struct evbuffer *buf, int fd, int howmuch)
 	return (n);
 }
 
+
+
+int
+evbuffer_ssl_read(struct evbuffer *buf, int fd, int howmuch, SSL *ssl_fd)
+{
+    u_char *p;
+    size_t oldoff = buf->off;
+    int n = EVBUFFER_MAX_READ;
+    if (ioctl(fd, FIONREAD, &n) == -1 || n <= 0) {
+        n = EVBUFFER_MAX_READ;
+    } else if (n > EVBUFFER_MAX_READ && n > howmuch) {
+        if ((size_t)n > buf->totallen << 2)
+            n = buf->totallen << 2;
+        if (n < EVBUFFER_MAX_READ)
+            n = EVBUFFER_MAX_READ;
+    }
+
+    if (howmuch < 0 || howmuch > n)
+        howmuch = n;
+
+    if (evbuffer_expand(buf, howmuch) == -1)
+        return (-1);
+
+    /* We can append new data at this point */
+    p = buf->buffer + buf->off;
+
+    n = SSL_read(ssl_fd, p, howmuch);
+    
+    printf("p=%s\n", p);
+
+
+    if (n == -1)
+        return (-1);
+    if (n == 0)
+        return (0);
+
+    buf->off += n;
+
+    /* Tell someone about changes in this buffer */
+    if (buf->off != oldoff && buf->cb != NULL)
+        (*buf->cb)(buf, oldoff, buf->off, buf->cbarg);
+
+    return (n);
+}
+
+
+
+
+
+
+
 int
 evbuffer_ssl_write(struct evbuffer *buffer, SSL *fd)
 {
