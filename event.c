@@ -394,7 +394,6 @@ event_base_loop(struct event_base *base, int flags)
 
 		/* clear time cache */
 		base->tv_cache.tv_sec = 0;
-
 		res = evsel->dispatch(base, evbase, tv_p);
 
 		if (res == -1)

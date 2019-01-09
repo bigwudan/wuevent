@@ -445,10 +445,12 @@ bufferevent_ssl_new(int fd, evbuffercb readcb, evbuffercb writecb,
 		return (NULL);
 	}
         
+    bufev->ssl_fd = ssl_fd;
 
 	event_set(&bufev->ev_read, fd, EV_READ, bufferevent_ssl_readcb, bufev);
 	event_set(&bufev->ev_write, fd, EV_WRITE, bufferevent_ssl_writecb, bufev);
 	bufferevent_ssl_setcb(bufev, readcb, writecb, errorcb, cbarg);
+    bufev->enabled = EV_WRITE;
 	return bufev;
 }
 

@@ -26,7 +26,7 @@ evbuffer.o : evbuffer.c
 
 
 test_http.o : test_http.c
-	gcc -lssl -lcrypto -c -g test_http.c -o test_http.o
+	gcc -c -g test_http.c -o test_http.o
 clean:
 	rm -rf *.o
 	rm -rf test_http.out

@@ -358,6 +358,7 @@ evbuffer_read(struct evbuffer *buf, int fd, int howmuch)
 int
 evbuffer_ssl_write(struct evbuffer *buffer, SSL *fd)
 {
+    assert(fd);
 	int n;
     n = SSL_write(fd, buffer->buffer, buffer->off);
 	if (n == -1)

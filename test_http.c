@@ -11,6 +11,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <assert.h>
 
 
 
@@ -225,6 +226,7 @@ ssl_base_test(void)
 	SSL *ssl;
 
     base = event_init();
+    assert(base);
 
 	SSL_CTX *sslContext;
 	SSL_load_error_strings ();
@@ -291,7 +293,7 @@ ssl_base_test(void)
         "\r\n";
 
     bufferevent_ssl_write(bev, http_request, strlen(http_request));
-
+    printf("dispatch ...\n");
     event_base_dispatch(base);
 
 
