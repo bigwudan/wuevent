@@ -25,8 +25,8 @@
 #define CLIENT_KEY      "key1/clientkey.pem"
 #define CLIENT_CERT     "key1/client.pem"
 
-#define SERVER_CERT     "key/cert.pem"                                                                                          
-#define SERVER_KEY      "key/key.pem"
+#define SERVER_CERT     "srvkey/cert.pem"                                                                                          
+#define SERVER_KEY      "srvkey/key.pem"
 
 
 
