@@ -115,6 +115,7 @@ struct evhttp {
     void *gencbarg;
 
     struct event_base *base;
+    SSL_CTX *ctx;
 };
 
 

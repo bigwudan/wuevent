@@ -25,6 +25,9 @@
 #define CLIENT_KEY      "key1/clientkey.pem"
 #define CLIENT_CERT     "key1/client.pem"
 
+#define SERVER_CERT     "key/cert.pem"                                                                                          
+#define SERVER_KEY      "key/key.pem"
+
 
 
 
@@ -249,7 +252,58 @@ http_errorcb_ssl(struct ssl_bufferevent *bev, short what, void *arg)
 }
   
 
+static void
+ssl_server_test()
+{
 
+    base = event_init();
+    int port = 8743;
+    struct evhttp *myhttp;
+    int flag = 0;
+    SSL_CTX *ctx;
+
+    myhttp = evhttp_new(base);
+
+    //ssl_initi
+    SSL_library_init();
+    OpenSSL_add_all_algorithms();
+    SSL_load_error_strings();
+    ctx = SSL_CTX_new(SSLv23_server_method());
+    if (ctx == NULL) {
+        ERR_print_errors_fp(stdout);
+        exit(1);
+    }
+
+    /*加载公钥证书*/
+    if (SSL_CTX_use_certificate_file(ctx, SERVER_CERT, SSL_FILETYPE_PEM) <= 0) {
+        ERR_print_errors_fp(stdout);
+        exit(1);
+    }
+
+    /*设置私钥*/
+    if (SSL_CTX_use_PrivateKey_file(ctx, SERVER_KEY, SSL_FILETYPE_PEM) <= 0) {
+        printf("use private key fail.\n");
+        ERR_print_errors_fp(stdout);
+        exit(1);
+    }
+
+    if (!SSL_CTX_check_private_key(ctx)) {
+        ERR_print_errors_fp(stdout);                                                                                            
+        exit(1);
+    }
+
+    myhttp->ctx = ctx;
+
+    evhttp_ssl_bind_socket(myhttp, "127.0.0.1", port);
+
+
+
+
+    fprintf(stdout, "Testing HTTP Server Event Base: ");
+
+
+
+}
 
 
 static void

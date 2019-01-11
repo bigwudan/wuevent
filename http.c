@@ -54,16 +54,12 @@ static void evhttp_read_firstline(struct evhttp_connection *evcon,
 static void evhttp_read_header(struct evhttp_connection *evcon,
 		struct evhttp_request *req);
 
-
-
 static inline void evhttp_send(struct evhttp_request *req, struct evbuffer *databuf);
-
-
 
 void evhttp_read(int, short, void *);
 void evhttp_write(int, short, void *);
 
-
+static void accept_ssl_socket(int fd, short what, void *arg);
 
 int
 evhttp_remove_header(struct evkeyvalq *headers, const char *key)
@@ -820,6 +816,33 @@ evhttp_new(struct event_base *base)
     return (http);
 }
 
+
+int
+evhttp_ssl_bind_socket(struct evhttp *http, const char *address, u_short port)
+{
+    int fd;
+    int res;
+
+    if ((fd = bind_socket(address, port, 1 /*reuse*/)) == -1)
+        return (-1);
+
+    if (listen(fd, 128) == -1) {
+        event_warn("%s: listen", __func__);
+        EVUTIL_CLOSESOCKET(fd);
+        return (-1);
+    }
+
+    res = evhttp_accept_socket(http, fd);
+
+    if (res != -1)
+        event_debug(("Bound to port %d - Awaiting connections ... ",
+                    port));
+
+    return (res);
+}
+
+
+
 int
 evhttp_bind_socket(struct evhttp *http, const char *address, u_short port)
 {
@@ -903,6 +926,37 @@ out:
     return (-1);
 }
 
+
+int
+evhttp_ssl_accept_socket(struct evhttp *http, int fd)
+{
+    struct evhttp_bound_socket *bound;
+    struct event *ev;
+    int res;
+
+    bound = malloc(sizeof(struct evhttp_bound_socket));
+    if (bound == NULL)
+        return (-1);
+
+    ev = &bound->bind_ev;
+
+    /* Schedule the socket for accepting */
+    event_set(ev, fd, EV_READ | EV_PERSIST, accept_ssl_socket, http);
+    EVHTTP_BASE_SET(http, ev);
+
+    res = event_add(ev, NULL);
+
+    if (res == -1) {
+        free(bound);
+        return (-1);
+    }
+
+    TAILQ_INSERT_TAIL(&http->sockets, bound, next);
+
+    return (0);
+}
+
+
 int
 evhttp_accept_socket(struct evhttp *http, int fd)
 {
@@ -958,6 +1012,38 @@ make_addrinfo(const char *address, u_short port)
 
     return (aitop);
 }
+
+static void
+accept_ssl_handshake(struct evhttp *http, int nfd, struct sockaddr *ss, socklen_t addlen)
+{
+
+
+
+
+
+
+}
+
+static void
+accept_ssl_socket(int fd, short what, void *arg)
+{
+    struct evhttp *http = arg;
+    struct sockaddr_storage ss;
+    socklen_t addrlen = sizeof(ss);
+    int nfd;
+
+    if ((nfd = accept(fd, (struct sockaddr *)&ss, &addrlen)) == -1) {
+        if (errno != EAGAIN && errno != EINTR)
+            event_warn("%s: bad accept", __func__);
+        return;
+    }
+    if (evutil_make_socket_nonblocking(nfd) < 0)
+        return;
+    accept_ssl_handshake(http, nfd, (struct sockaddr *)&ss, addrlen);
+    //evhttp_get_request(http, nfd, (struct sockaddr *)&ss, addrlen);
+}
+
+
 
 static void
 accept_socket(int fd, short what, void *arg)

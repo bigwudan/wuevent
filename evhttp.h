@@ -130,4 +130,9 @@ void evhttp_send_reply(struct evhttp_request *req, int code,
 		const char *reason, struct evbuffer *databuf);
 
 
+int evhttp_ssl_bind_socket(struct evhttp *http, const char *address, u_short port);
+
+
+
+
 #endif
