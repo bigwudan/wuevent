@@ -1013,9 +1013,54 @@ make_addrinfo(const char *address, u_short port)
     return (aitop);
 }
 
+
 static void
-accept_ssl_handshake(struct evhttp *http, int nfd, struct sockaddr *ss, socklen_t addlen)
+accept_ssl_cb(int fd, short event, void *arg)
 {
+
+
+
+}
+
+
+
+static void
+accept_ssl_handshake(struct evhttp *http, int fd, struct sockaddr *sa, socklen_t salen)
+{
+
+    struct evhttp_connection *evcon;
+
+    evcon = evhttp_get_request_connection(http, fd, sa, salen);
+    if (evcon == NULL)
+        return;
+
+    if (http->timeout != -1)
+        evhttp_connection_set_timeout(evcon, http->timeout);
+
+    evcon->http_server = http;
+    TAILQ_INSERT_TAIL(&http->connections, evcon, next);
+
+    evcon->ssl = SSL_new (http->ctx);
+    assert(evcon->ssl);
+
+    SSL_set_accept_state(evcon->ssl);
+    int r = SSL_do_handshake(evcon->ssl);
+
+    if (r == 1) {
+        printf("ssl connect finished\n");
+        return;
+    }    
+    
+    int err = SSL_get_error(evcon->ssl, r);    
+
+    if (err == SSL_ERROR_WANT_WRITE) {
+        event_set(&(evcon->ev), fd, EV_WRITE, accept_ssl_cb, evcon);
+        event_add(&(evcon->ev), NULL);
+    } else if (err == SSL_ERROR_WANT_READ) {
+
+    } else {
+        printf("error SSL_do_handshake\n");
+    }
 
 
 

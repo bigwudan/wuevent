@@ -76,6 +76,7 @@ struct evhttp_connection {
     void *closecb_arg;
 
     struct event_base *base;
+    SSL *ssl;
 };
 
 
