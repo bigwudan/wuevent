@@ -299,7 +299,7 @@ ssl_server_test()
 
 
 
-    fprintf(stdout, "Testing HTTP Server Event Base: ");
+    fprintf(stdout, "Testing HTTP Server Event Base:\n ");
 
     event_base_dispatch(base);
 

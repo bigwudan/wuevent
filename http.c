@@ -1019,7 +1019,6 @@ accept_ssl_cb(int fd, short event, void *arg)
     struct evhttp_connection *evcon;
     evcon = (struct evhttp_connection *)arg;
 
-    SSL_set_accept_state(evcon->ssl);
     int r = SSL_do_handshake(evcon->ssl);
     if (r == 1) {
         printf("ssl connect finished\n");
@@ -1027,10 +1026,10 @@ accept_ssl_cb(int fd, short event, void *arg)
     }    
     int err = SSL_get_error(evcon->ssl, r);    
     if (err == SSL_ERROR_WANT_WRITE) {
-        event_set(&(evcon->ev), fd, EV_WRITE, accept_ssl_cb, evcon);
+        event_set(&(evcon->ev), fd, EV_READ, accept_ssl_cb, evcon);
         event_add(&(evcon->ev), NULL);
     } else if (err == SSL_ERROR_WANT_READ) {
-        event_set(&(evcon->ev), fd, EV_READ, accept_ssl_cb, evcon);
+        event_set(&(evcon->ev), fd, EV_WRITE, accept_ssl_cb, evcon);
         event_add(&(evcon->ev), NULL);
     } else {
         
@@ -1060,10 +1059,14 @@ accept_ssl_handshake(struct evhttp *http, int fd, struct sockaddr *sa, socklen_t
     TAILQ_INSERT_TAIL(&http->connections, evcon, next);
 
     evcon->ssl = SSL_new (http->ctx);
+
+    printf("evcon=%p\n", evcon->ssl);
+    int r = SSL_set_fd(evcon->ssl, fd);
+
     assert(evcon->ssl);
 
     SSL_set_accept_state(evcon->ssl);
-    int r = SSL_do_handshake(evcon->ssl);
+    r = SSL_do_handshake(evcon->ssl);
 
     if (r == 1) {
         printf("ssl connect finished\n");
@@ -1073,14 +1076,19 @@ accept_ssl_handshake(struct evhttp *http, int fd, struct sockaddr *sa, socklen_t
     int err = SSL_get_error(evcon->ssl, r);    
 
     if (err == SSL_ERROR_WANT_WRITE) {
-        event_set(&(evcon->ev), fd, EV_WRITE, accept_ssl_cb, evcon);
+        printf("write...\n");
+        event_set(&(evcon->ev), fd, EV_READ, accept_ssl_cb, evcon);
         event_add(&(evcon->ev), NULL);
     } else if (err == SSL_ERROR_WANT_READ) {
 
-        event_set(&(evcon->ev), fd, EV_READ, accept_ssl_cb, evcon);
+        printf("read...\n");
+        event_set(&(evcon->ev), fd, EV_WRITE, accept_ssl_cb, evcon);
         event_add(&(evcon->ev), NULL);
     } else {
-        printf("error SSL_do_handshake-1, error=%d\n", err);
+
+        ERR_print_errors_fp(stderr);  
+
+        printf("error SSL_do_handshake-1, error=%d r=%d \n", err, r);
         exit(1);
     }
 
@@ -1104,6 +1112,19 @@ accept_ssl_socket(int fd, short what, void *arg)
             event_warn("%s: bad accept", __func__);
         return;
     }
+//    SSL *ssl = SSL_new(http->ctx);                                                                                                     
+//    SSL_set_fd(ssl, nfd);
+//    if (SSL_accept(ssl) == -1) {
+//        printf("ssl_accept close...\n");
+//        close(nfd);
+//        exit(1);
+//    }
+
+//    printf("ssl_accept success \n");
+//    exit(1);
+
+
+
     if (evutil_make_socket_nonblocking(nfd) < 0)
         return;
     accept_ssl_handshake(http, nfd, (struct sockaddr *)&ss, addrlen);
