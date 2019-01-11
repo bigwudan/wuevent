@@ -301,6 +301,7 @@ ssl_server_test()
 
     fprintf(stdout, "Testing HTTP Server Event Base: ");
 
+    event_base_dispatch(base);
 
 
 }
@@ -466,6 +467,10 @@ get_ssl_request()
 int
 main (int argc, char **argv)
 {
+
+    ssl_server_test();
+    return 0;
+
     char *pRequest = NULL;
     pRequest=get_ssl_request();
     //printf("%s\n",pRequest);

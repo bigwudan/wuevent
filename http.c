@@ -831,8 +831,7 @@ evhttp_ssl_bind_socket(struct evhttp *http, const char *address, u_short port)
         EVUTIL_CLOSESOCKET(fd);
         return (-1);
     }
-
-    res = evhttp_accept_socket(http, fd);
+    res = evhttp_ssl_accept_socket(http, fd);
 
     if (res != -1)
         event_debug(("Bound to port %d - Awaiting connections ... ",
@@ -1017,7 +1016,27 @@ make_addrinfo(const char *address, u_short port)
 static void
 accept_ssl_cb(int fd, short event, void *arg)
 {
+    struct evhttp_connection *evcon;
+    evcon = (struct evhttp_connection *)arg;
 
+    SSL_set_accept_state(evcon->ssl);
+    int r = SSL_do_handshake(evcon->ssl);
+    if (r == 1) {
+        printf("ssl connect finished\n");
+        return;
+    }    
+    int err = SSL_get_error(evcon->ssl, r);    
+    if (err == SSL_ERROR_WANT_WRITE) {
+        event_set(&(evcon->ev), fd, EV_WRITE, accept_ssl_cb, evcon);
+        event_add(&(evcon->ev), NULL);
+    } else if (err == SSL_ERROR_WANT_READ) {
+        event_set(&(evcon->ev), fd, EV_READ, accept_ssl_cb, evcon);
+        event_add(&(evcon->ev), NULL);
+    } else {
+        
+        printf("error SSL_do_handshake-2, error=%d\n", err);
+        exit(1);
+    }
 
 
 }
@@ -1058,8 +1077,11 @@ accept_ssl_handshake(struct evhttp *http, int fd, struct sockaddr *sa, socklen_t
         event_add(&(evcon->ev), NULL);
     } else if (err == SSL_ERROR_WANT_READ) {
 
+        event_set(&(evcon->ev), fd, EV_READ, accept_ssl_cb, evcon);
+        event_add(&(evcon->ev), NULL);
     } else {
-        printf("error SSL_do_handshake\n");
+        printf("error SSL_do_handshake-1, error=%d\n", err);
+        exit(1);
     }
 
 

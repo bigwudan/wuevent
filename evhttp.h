@@ -133,6 +133,7 @@ void evhttp_send_reply(struct evhttp_request *req, int code,
 int evhttp_ssl_bind_socket(struct evhttp *http, const char *address, u_short port);
 
 
+int evhttp_ssl_accept_socket(struct evhttp *http, int fd);
 
 
 #endif
