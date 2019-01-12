@@ -61,6 +61,11 @@ void evhttp_write(int, short, void *);
 
 static void accept_ssl_socket(int fd, short what, void *arg);
 
+void
+evhttp_ssl_start_read(struct evhttp_connection *evcon);
+
+void
+evhttp_ssl_read(int fd, short what, void *arg);
 int
 evhttp_remove_header(struct evkeyvalq *headers, const char *key)
 {
@@ -1013,15 +1018,44 @@ make_addrinfo(const char *address, u_short port)
 }
 
 
+//ssl_accept成功结束后的处理
+static int
+evhttp_ssl_associate_new_request_with_connection(struct evhttp_connection *evcon)
+{
+    struct evhttp *http = evcon->http_server;
+    struct evhttp_request *req;
+    if ((req = evhttp_request_new(evhttp_handle_request, http)) == NULL)
+        return (-1);
+
+    req->evcon = evcon; /* the request ends up owning the connection */
+    req->flags |= EVHTTP_REQ_OWN_CONNECTION;
+
+    TAILQ_INSERT_TAIL(&evcon->requests, req, next);
+
+    req->kind = EVHTTP_REQUEST;
+
+    if ((req->remote_host = strdup(evcon->address)) == NULL)
+        event_err(1, "%s: strdup", __func__);
+    req->remote_port = evcon->port;
+    evhttp_ssl_start_read(evcon);
+    return (0);
+}
+
+
+
+
+
 static void
 accept_ssl_cb(int fd, short event, void *arg)
 {
     struct evhttp_connection *evcon;
     evcon = (struct evhttp_connection *)arg;
-
+    int len= 0;
     int r = SSL_do_handshake(evcon->ssl);
     if (r == 1) {
-        printf("ssl connect finished\n");
+        printf("ssl connect finished-2\n");
+        if (evhttp_ssl_associate_new_request_with_connection(evcon) == -1)
+            evhttp_connection_free(evcon);
         return;
     }    
     int err = SSL_get_error(evcon->ssl, r);    
@@ -1069,7 +1103,8 @@ accept_ssl_handshake(struct evhttp *http, int fd, struct sockaddr *sa, socklen_t
     r = SSL_do_handshake(evcon->ssl);
 
     if (r == 1) {
-        printf("ssl connect finished\n");
+        if (evhttp_ssl_associate_new_request_with_connection(evcon) == -1)
+            evhttp_connection_free(evcon);
         return;
     }    
     
@@ -1112,23 +1147,9 @@ accept_ssl_socket(int fd, short what, void *arg)
             event_warn("%s: bad accept", __func__);
         return;
     }
-//    SSL *ssl = SSL_new(http->ctx);                                                                                                     
-//    SSL_set_fd(ssl, nfd);
-//    if (SSL_accept(ssl) == -1) {
-//        printf("ssl_accept close...\n");
-//        close(nfd);
-//        exit(1);
-//    }
-
-//    printf("ssl_accept success \n");
-//    exit(1);
-
-
-
     if (evutil_make_socket_nonblocking(nfd) < 0)
         return;
     accept_ssl_handshake(http, nfd, (struct sockaddr *)&ss, addrlen);
-    //evhttp_get_request(http, nfd, (struct sockaddr *)&ss, addrlen);
 }
 
 
@@ -1704,6 +1725,19 @@ evhttp_write(int fd, short what, void *arg)
 		(*evcon->cb)(evcon, evcon->cb_arg);
 }
 
+void
+evhttp_ssl_start_read(struct evhttp_connection *evcon)
+{
+	/* Set up an event to read the headers */
+	if (event_initialized(&evcon->ev))
+		event_del(&evcon->ev);
+
+	event_set(&evcon->ev, evcon->fd, EV_READ, evhttp_ssl_read, evcon);
+	EVHTTP_BASE_SET(evcon, &evcon->ev);
+
+	evhttp_add_event(&evcon->ev, evcon->timeout, HTTP_READ_TIMEOUT);
+	evcon->state = EVCON_READING_FIRSTLINE;
+}
 
 void
 evhttp_start_read(struct evhttp_connection *evcon)
@@ -2204,6 +2238,64 @@ evhttp_read_firstline(struct evhttp_connection *evcon,
 	evcon->state = EVCON_READING_HEADERS;
 	evhttp_read_header(evcon, req);
 }
+
+
+void
+evhttp_ssl_read(int fd, short what, void *arg)
+{
+	struct evhttp_connection *evcon = arg;
+	struct evhttp_request *req = TAILQ_FIRST(&evcon->requests);
+	struct evbuffer *buf = evcon->input_buffer;
+	int n, len;
+
+	if (what == EV_TIMEOUT) {
+		evhttp_connection_fail(evcon, EVCON_HTTP_TIMEOUT);
+		return;
+	}
+	n = evbuffer_ssl_read(buf, fd, -1, evcon->ssl);
+	len = EVBUFFER_LENGTH(buf);
+	event_debug(("%s: got %d on %d\n", __func__, n, fd));
+	if (n == -1) {
+		if (errno != EINTR && errno != EAGAIN) {
+			event_debug(("%s: evbuffer_read", __func__));
+			evhttp_connection_fail(evcon, EVCON_HTTP_EOF);
+		} else {
+			evhttp_add_event(&evcon->ev, evcon->timeout,
+					HTTP_READ_TIMEOUT);	       
+		}
+		return;
+	} else if (n == 0) {
+		/* Connection closed */
+		evhttp_connection_done(evcon);
+		return;
+	}
+
+	switch (evcon->state) {
+		case EVCON_READING_FIRSTLINE:
+			evhttp_read_firstline(evcon, req);
+			break;
+		case EVCON_READING_HEADERS:
+			evhttp_read_header(evcon, req);
+			break;
+		case EVCON_READING_BODY:
+			evhttp_read_body(evcon, req);
+			break;
+		case EVCON_READING_TRAILER:
+			evhttp_read_trailer(evcon, req);
+			break;
+		case EVCON_DISCONNECTED:
+		case EVCON_CONNECTING:
+		case EVCON_IDLE:
+		case EVCON_WRITING:
+		default:
+			event_errx(1, "%s: illegal connection state %d",
+					__func__, evcon->state);
+	}
+}
+
+
+
+
 
 void
 evhttp_read(int fd, short what, void *arg)
