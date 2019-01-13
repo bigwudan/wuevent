@@ -12,14 +12,14 @@
 #include <openssl/err.h>
 
 #define MAXBUF 1024
-#define SERVER_CERT     "key/cert.pem"
-#define SERVER_KEY      "key/key.pem"
+#define SERVER_CERT     "srvkey/cert.pem"
+#define SERVER_KEY      "srvkey/key.pem"
 
 int main(int argc, char **argv)
 {
+	int flag;
 	int sockfd, new_fd;
 	int reuse = 0;
-	int	flag=0;
 	socklen_t len;
 	struct sockaddr_in my_addr, their_addr;
 	unsigned int myport, lisnum;
@@ -77,10 +77,6 @@ int main(int argc, char **argv)
 	my_addr.sin_port = htons(myport);
 	my_addr.sin_addr.s_addr = INADDR_ANY;
 
-        
-    printf("myport=%d\n", myport);
-
-
 	if (bind(sockfd, (struct sockaddr *) &my_addr, sizeof(struct sockaddr)) == -1) {
 		perror("bind");
 		exit(1);
@@ -107,16 +103,14 @@ int main(int argc, char **argv)
 
 		ssl = SSL_new(ctx);
 		SSL_set_fd(ssl, new_fd);
-		flag = SSL_accept(ssl);
-		printf("flag=%d\n",  flag);
+		if ((flag=SSL_accept(ssl)) == -1) {
+			perror("accept");
+			close(new_fd);
+			break;
+		}
 
-
-		//if (SSL_accept(ssl) == -1) {
-		//	perror("accept");
-		//	close(new_fd);
-		//	break;
-		//}
-
+		printf("accept flag=%d\n",flag);
+		
 		bzero(buf, MAXBUF + 1);
 		strcpy(buf, "server->client");
 		len = SSL_write(ssl, buf, strlen(buf));
@@ -143,3 +137,4 @@ finish:
 	SSL_CTX_free(ctx);
 	return 0;
 }
+

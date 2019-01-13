@@ -25,8 +25,8 @@
 #define CLIENT_KEY      "key1/clientkey.pem"
 #define CLIENT_CERT     "key1/client.pem"
 
-#define SERVER_CERT     "srvkey/cert.pem"                                                                                          
-#define SERVER_KEY      "srvkey/key.pem"
+#define SERVER_CERT     "key/cert.pem"                                                                                          
+#define SERVER_KEY      "key/key.pem"
 
 
 
@@ -257,9 +257,8 @@ ssl_server_test()
 {
 
     base = event_init();
-    int port = 8743;
+    int port = 7838;
     struct evhttp *myhttp;
-    int flag = 0;
     SSL_CTX *ctx;
 
     myhttp = evhttp_new(base);
@@ -293,8 +292,12 @@ ssl_server_test()
     }
 
     myhttp->ctx = ctx;
+	
 
-    evhttp_ssl_bind_socket(myhttp, "127.0.0.1", port);
+
+
+
+    evhttp_ssl_bind_socket(myhttp, "180.101.147.13", port);
 
 
 

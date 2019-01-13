@@ -3,7 +3,7 @@
 !_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
-!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+!_TAG_PROGRAM_VERSION	5.8	//
 ALL_DATA_READ	http-internal.h	/^	ALL_DATA_READ = 1,$/;"	e	enum:message_read_status
 CA_FILE	test_http.c	24;"	d	file:
 CIRCLEQ_EMPTY	sys/queue.h	401;"	d
@@ -37,10 +37,10 @@ DST_MET	sys/_libevent_time.h	74;"	d
 DST_NONE	sys/_libevent_time.h	70;"	d
 DST_USA	sys/_libevent_time.h	71;"	d
 DST_WET	sys/_libevent_time.h	73;"	d
-ERR_FORMAT	http.c	1439;"	d	file:
-ERR_FORMAT	http.c	1458;"	d	file:
-ERR_FORMAT	http.c	721;"	d	file:
-ERR_FORMAT	http.c	740;"	d	file:
+ERR_FORMAT	http.c	1495;"	d	file:
+ERR_FORMAT	http.c	1514;"	d	file:
+ERR_FORMAT	http.c	730;"	d	file:
+ERR_FORMAT	http.c	749;"	d	file:
 EVBUFFER_DATA	event.h	281;"	d
 EVBUFFER_EOF	event.h	118;"	d
 EVBUFFER_ERROR	event.h	119;"	d
@@ -64,7 +64,7 @@ EVCON_READING_TRAILER	http-internal.h	/^    EVCON_READING_TRAILER,  \/**< readin
 EVCON_WRITING	http-internal.h	/^    EVCON_WRITING       \/**< writing request\/response headers\/body *\/$/;"	e	enum:evhttp_connection_state
 EVENT_FD	event.h	89;"	d
 EVENT_SIGNAL	event.h	88;"	d
-EVHTTP_BASE_SET	http.c	21;"	d	file:
+EVHTTP_BASE_SET	http.c	25;"	d	file:
 EVHTTP_CON_CLOSEDETECT	http-internal.h	59;"	d
 EVHTTP_CON_INCOMING	http-internal.h	57;"	d
 EVHTTP_CON_OUTGOING	http-internal.h	58;"	d
@@ -127,10 +127,11 @@ LIST_INSERT_HEAD	sys/queue.h	189;"	d
 LIST_NEXT	sys/queue.h	160;"	d
 LIST_REMOVE	sys/queue.h	196;"	d
 LIST_REPLACE	sys/queue.h	203;"	d
+MAXBUF	http.c	21;"	d	file:
 MAXBUF	two_serivce.c	14;"	d	file:
 MAX_EPOLL_TIMEOUT_MSEC	epoll.c	18;"	d	file:
 MAX_NEVENTS	epoll.c	68;"	d	file:
-MIN	http.c	25;"	d	file:
+MIN	http.c	29;"	d	file:
 MORE_DATA_EXPECTED	http-internal.h	/^	MORE_DATA_EXPECTED = 0,$/;"	e	enum:message_read_status
 NEVENT	test_time.c	10;"	d	file:
 NI_MAXSERV	test_http.c	155;"	d	file:
@@ -167,7 +168,7 @@ SLIST_INSERT_HEAD	sys/queue.h	128;"	d
 SLIST_NEXT	sys/queue.h	109;"	d
 SLIST_REMOVE_HEAD	sys/queue.h	133;"	d
 SWAP	buffer.c	38;"	d	file:
-SWAP	http.c	1461;"	d	file:
+SWAP	http.c	1517;"	d	file:
 TAILQ_EMPTY	sys/queue.h	301;"	d
 TAILQ_END	sys/queue.h	294;"	d
 TAILQ_ENTRY	event.h	13;"	d

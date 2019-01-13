@@ -18,6 +18,10 @@
 #include "evhttp.h"
 
 
+#define MAXBUF 1024
+
+
+
 #define EVHTTP_BASE_SET(x, y) do { \
     if ((x)->base != NULL) event_base_set((x)->base, y);    \
 } while (0) 
@@ -828,8 +832,33 @@ evhttp_ssl_bind_socket(struct evhttp *http, const char *address, u_short port)
     int fd;
     int res;
 
-    if ((fd = bind_socket(address, port, 1 /*reuse*/)) == -1)
-        return (-1);
+//    if ((fd = bind_socket(address, port, 1 /*reuse*/)) == -1)
+//        return (-1);
+
+
+    if ((fd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
+	    perror("socket");
+	    exit(1);
+    }
+
+
+
+    struct sockaddr_in my_addr, their_addr;
+    bzero(&my_addr, sizeof(my_addr));
+    my_addr.sin_family = PF_INET;
+    my_addr.sin_port = htons(port);
+    my_addr.sin_addr.s_addr = INADDR_ANY;
+
+    if (bind(fd, (struct sockaddr *) &my_addr, sizeof(struct sockaddr)) == -1) {
+	    perror("bind");
+	    exit(1);
+    } else {
+	    printf("binded\n");
+    }
+
+
+
+
 
     if (listen(fd, 128) == -1) {
         event_warn("%s: listen", __func__);
@@ -1053,17 +1082,16 @@ accept_ssl_cb(int fd, short event, void *arg)
     int len= 0;
     int r = SSL_do_handshake(evcon->ssl);
     if (r == 1) {
-        printf("ssl connect finished-2\n");
         if (evhttp_ssl_associate_new_request_with_connection(evcon) == -1)
             evhttp_connection_free(evcon);
         return;
     }    
     int err = SSL_get_error(evcon->ssl, r);    
     if (err == SSL_ERROR_WANT_WRITE) {
-        event_set(&(evcon->ev), fd, EV_READ, accept_ssl_cb, evcon);
+        event_set(&(evcon->ev), fd, EV_WRITE, accept_ssl_cb, evcon);
         event_add(&(evcon->ev), NULL);
     } else if (err == SSL_ERROR_WANT_READ) {
-        event_set(&(evcon->ev), fd, EV_WRITE, accept_ssl_cb, evcon);
+        event_set(&(evcon->ev), fd, EV_READ, accept_ssl_cb, evcon);
         event_add(&(evcon->ev), NULL);
     } else {
         
@@ -1094,7 +1122,6 @@ accept_ssl_handshake(struct evhttp *http, int fd, struct sockaddr *sa, socklen_t
 
     evcon->ssl = SSL_new (http->ctx);
 
-    printf("evcon=%p\n", evcon->ssl);
     int r = SSL_set_fd(evcon->ssl, fd);
 
     assert(evcon->ssl);
@@ -1111,18 +1138,13 @@ accept_ssl_handshake(struct evhttp *http, int fd, struct sockaddr *sa, socklen_t
     int err = SSL_get_error(evcon->ssl, r);    
 
     if (err == SSL_ERROR_WANT_WRITE) {
-        printf("write...\n");
-        event_set(&(evcon->ev), fd, EV_READ, accept_ssl_cb, evcon);
-        event_add(&(evcon->ev), NULL);
-    } else if (err == SSL_ERROR_WANT_READ) {
-
-        printf("read...\n");
         event_set(&(evcon->ev), fd, EV_WRITE, accept_ssl_cb, evcon);
         event_add(&(evcon->ev), NULL);
+    } else if (err == SSL_ERROR_WANT_READ) {
+        event_set(&(evcon->ev), fd, EV_READ, accept_ssl_cb, evcon);
+        event_add(&(evcon->ev), NULL);
     } else {
-
         ERR_print_errors_fp(stderr);  
-
         printf("error SSL_do_handshake-1, error=%d r=%d \n", err, r);
         exit(1);
     }
@@ -1137,6 +1159,7 @@ accept_ssl_handshake(struct evhttp *http, int fd, struct sockaddr *sa, socklen_t
 static void
 accept_ssl_socket(int fd, short what, void *arg)
 {
+	SSL *ssl;
     struct evhttp *http = arg;
     struct sockaddr_storage ss;
     socklen_t addrlen = sizeof(ss);
@@ -1147,6 +1170,7 @@ accept_ssl_socket(int fd, short what, void *arg)
             event_warn("%s: bad accept", __func__);
         return;
     }
+
     if (evutil_make_socket_nonblocking(nfd) < 0)
         return;
     accept_ssl_handshake(http, nfd, (struct sockaddr *)&ss, addrlen);
@@ -2253,6 +2277,7 @@ evhttp_ssl_read(int fd, short what, void *arg)
 		return;
 	}
 	n = evbuffer_ssl_read(buf, fd, -1, evcon->ssl);
+	printf("len=%d ssl_buf=%s\n",n ,buf->buffer);
 	len = EVBUFFER_LENGTH(buf);
 	event_debug(("%s: got %d on %d\n", __func__, n, fd));
 	if (n == -1) {
